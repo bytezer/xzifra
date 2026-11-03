@@ -80,6 +80,14 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) =>
           ExpenseFormPage(expenseId: state.pathParameters['id']),
     ),
+    GoRoute(
+      path: '/expenses/:id/duplicate',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => ExpenseFormPage(
+        expenseId: state.pathParameters['id'],
+        duplicate: true,
+      ),
+    ),
   ],
 );
 

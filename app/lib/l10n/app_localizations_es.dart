@@ -58,6 +58,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get actionArchive => 'Archivar';
 
   @override
+  String get actionDuplicate => 'Duplicar';
+
+  @override
   String get labelNone => 'Ninguno';
 
   @override
@@ -94,6 +97,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get tooltipAddExpense => 'Agregar gasto';
 
   @override
+  String get shortcutNewExpense => 'Nuevo gasto';
+
+  @override
+  String get shortcutReports => 'Reportes';
+
+  @override
   String get dashboardSpentThisMonth => 'Gastado este mes';
 
   @override
@@ -104,6 +113,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get dashboardViewAll => 'Ver todo';
+
+  @override
+  String get dashboardRepeatLast => 'Repetir último';
 
   @override
   String get dashboardNoExpensesTitle => 'Sin gastos este mes';
@@ -197,6 +209,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get expenseEditTitle => 'Editar gasto';
 
   @override
+  String get expenseDuplicateTitle => 'Duplicar gasto';
+
+  @override
   String get expenseAmount => 'Monto';
 
   @override
@@ -219,6 +234,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get expenseSaveChanges => 'Guardar cambios';
+
+  @override
+  String get expenseSaveAndAddAnother => 'Guardar y agregar otro';
+
+  @override
+  String get expenseSavedAnother => 'Gasto guardado. Agrega otro.';
 
   @override
   String get expenseAmountError => 'Ingresa un monto mayor que cero.';

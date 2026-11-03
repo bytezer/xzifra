@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -6,13 +7,18 @@ import '../../core/l10n.dart';
 import '../../data/database.dart';
 import '../../domain/money.dart';
 import '../../domain/periods.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import 'widgets/amount_keypad.dart';
 
+/// The three ways the expense form can be opened.
+enum ExpenseFormMode { create, edit, duplicate }
+
 class ExpenseFormPage extends ConsumerWidget {
-  const ExpenseFormPage({super.key, this.expenseId});
+  const ExpenseFormPage({super.key, this.expenseId, this.duplicate = false});
 
   final String? expenseId;
+  final bool duplicate;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -22,6 +28,7 @@ class ExpenseFormPage extends ConsumerWidget {
           .watch(expenseDefaultsProvider)
           .when(
             data: (defaults) => _ExpenseFormBody(
+              mode: ExpenseFormMode.create,
               initial: null,
               defaultCategoryId: defaults.categoryId,
               defaultPaymentMethodId: defaults.paymentMethodId,
@@ -29,16 +36,20 @@ class ExpenseFormPage extends ConsumerWidget {
             loading: () => const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             ),
-            error: (error, stackTrace) => const _ExpenseFormBody(initial: null),
+            error: (error, stackTrace) => const _ExpenseFormBody(
+              mode: ExpenseFormMode.create,
+              initial: null,
+            ),
           );
     }
 
+    final mode = duplicate ? ExpenseFormMode.duplicate : ExpenseFormMode.edit;
     return ref
         .watch(expenseByIdProvider(id))
         .when(
           data: (view) => view == null
               ? _LoadError(message: context.l10n.expenseNotFound)
-              : _ExpenseFormBody(initial: view),
+              : _ExpenseFormBody(mode: mode, initial: view),
           loading: () =>
               const Scaffold(body: Center(child: CircularProgressIndicator())),
           error: (error, stackTrace) =>
@@ -63,11 +74,13 @@ class _LoadError extends StatelessWidget {
 
 class _ExpenseFormBody extends ConsumerStatefulWidget {
   const _ExpenseFormBody({
+    required this.mode,
     required this.initial,
     this.defaultCategoryId,
     this.defaultPaymentMethodId,
   });
 
+  final ExpenseFormMode mode;
   final ExpenseView? initial;
   final String? defaultCategoryId;
   final String? defaultPaymentMethodId;
@@ -85,27 +98,27 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
   late final TextEditingController _noteController;
   bool _saving = false;
 
-  bool get _isEditing => widget.initial != null;
+  bool get _isEditing => widget.mode == ExpenseFormMode.edit;
+  bool get _canAddAnother => !_isEditing;
 
   @override
   void initState() {
     super.initState();
     final initial = widget.initial;
-    if (initial == null) {
-      _amount = const AmountInput();
-      _currency = ref.read(selectedCurrencyProvider);
-      _categoryId = widget.defaultCategoryId;
-      _paymentMethodId = widget.defaultPaymentMethodId;
-      _date = DateTime.now();
-      _noteController = TextEditingController();
-    } else {
-      _amount = AmountInput.fromCents(initial.expense.amountCents);
-      _currency = initial.expense.currency;
-      _categoryId = initial.expense.categoryId;
-      _paymentMethodId = initial.expense.paymentMethodId;
-      _date = DateTime.tryParse(initial.expense.date) ?? DateTime.now();
-      _noteController = TextEditingController(text: initial.expense.note ?? '');
-    }
+    // Edit and duplicate both start from the source expense values. Only edit
+    // keeps the original date; duplicate and create start dated today.
+    final source = widget.mode == ExpenseFormMode.create ? null : initial;
+    _amount = source == null
+        ? const AmountInput()
+        : AmountInput.fromCents(source.expense.amountCents);
+    _currency = source?.expense.currency ?? ref.read(selectedCurrencyProvider);
+    _categoryId = source?.expense.categoryId ?? widget.defaultCategoryId;
+    _paymentMethodId =
+        source?.expense.paymentMethodId ?? widget.defaultPaymentMethodId;
+    _date = widget.mode == ExpenseFormMode.edit
+        ? DateTime.tryParse(initial!.expense.date) ?? DateTime.now()
+        : DateTime.now();
+    _noteController = TextEditingController(text: source?.expense.note ?? '');
   }
 
   @override
@@ -120,6 +133,12 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
     final scheme = theme.colorScheme;
     final l10n = context.l10n;
     final locale = localeNameOf(context);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = DateTime(now.year, now.month, now.day - 1);
+    final todaySelected = Periods.dateKey(_date) == Periods.dateKey(today);
+    final yesterdaySelected =
+        Periods.dateKey(_date) == Periods.dateKey(yesterday);
 
     final allCategories =
         ref.watch(allCategoriesProvider).asData?.value ?? const <Category>[];
@@ -135,9 +154,7 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
         .toList();
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_isEditing ? l10n.expenseEditTitle : l10n.expenseNewTitle),
-      ),
+      appBar: AppBar(title: Text(_title(l10n))),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         behavior: HitTestBehavior.opaque,
@@ -175,11 +192,18 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
             ),
             const SizedBox(height: 12),
             AmountKeypad(
-              onDigit: (digit) =>
-                  setState(() => _amount = _amount.appendDigit(digit)),
-              onDecimal: () =>
-                  setState(() => _amount = _amount.appendDecimal()),
-              onBackspace: () => setState(() => _amount = _amount.backspace()),
+              onDigit: (digit) {
+                HapticFeedback.selectionClick();
+                setState(() => _amount = _amount.appendDigit(digit));
+              },
+              onDecimal: () {
+                HapticFeedback.selectionClick();
+                setState(() => _amount = _amount.appendDecimal());
+              },
+              onBackspace: () {
+                HapticFeedback.selectionClick();
+                setState(() => _amount = _amount.backspace());
+              },
             ),
             const SizedBox(height: 20),
             Text(l10n.expenseCurrency, style: theme.textTheme.titleSmall),
@@ -243,6 +267,22 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
             const SizedBox(height: 20),
             Text(l10n.expenseDate, style: theme.textTheme.titleSmall),
             const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: [
+                ChoiceChip(
+                  label: Text(l10n.today),
+                  selected: todaySelected,
+                  onSelected: (_) => setState(() => _date = today),
+                ),
+                ChoiceChip(
+                  label: Text(l10n.yesterday),
+                  selected: yesterdaySelected,
+                  onSelected: (_) => setState(() => _date = yesterday),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
             Card(
               child: ListTile(
                 shape: RoundedRectangleBorder(
@@ -272,18 +312,41 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
       ),
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-        child: FilledButton(
-          onPressed: _saving ? null : _save,
-          child: _saving
-              ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Text(_isEditing ? l10n.expenseSaveChanges : l10n.expenseSave),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            FilledButton(
+              onPressed: _saving ? null : _save,
+              child: _saving
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(
+                      _isEditing ? l10n.expenseSaveChanges : l10n.expenseSave,
+                    ),
+            ),
+            if (_canAddAnother) ...[
+              const SizedBox(height: 8),
+              OutlinedButton(
+                onPressed: _saving ? null : () => _save(addAnother: true),
+                child: Text(l10n.expenseSaveAndAddAnother),
+              ),
+            ],
+          ],
         ),
       ),
     );
+  }
+
+  String _title(AppLocalizations l10n) {
+    return switch (widget.mode) {
+      ExpenseFormMode.create => l10n.expenseNewTitle,
+      ExpenseFormMode.edit => l10n.expenseEditTitle,
+      ExpenseFormMode.duplicate => l10n.expenseDuplicateTitle,
+    };
   }
 
   Future<void> _pickDate() async {
@@ -300,7 +363,8 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
     }
   }
 
-  Future<void> _save() async {
+  Future<void> _save({bool addAnother = false}) async {
+    if (_saving) return;
     final cents = _amount.cents;
     if (cents <= 0) {
       _showMessage(context.l10n.expenseAmountError);
@@ -326,6 +390,7 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
 
     setState(() => _saving = true);
     final note = _noteController.text.trim();
+    final date = Periods.dateKey(_date);
     final database = ref.read(databaseProvider);
 
     try {
@@ -334,7 +399,7 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
           widget.initial!.expense.id,
           amountCents: cents,
           currency: _currency,
-          date: Periods.dateKey(_date),
+          date: date,
           categoryId: categoryId,
           paymentMethodId: paymentMethodId,
           note: note.isEmpty ? null : note,
@@ -343,14 +408,24 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
         await database.addExpense(
           amountCents: cents,
           currency: _currency,
-          date: Periods.dateKey(_date),
+          date: date,
           categoryId: categoryId,
           paymentMethodId: paymentMethodId,
           note: note.isEmpty ? null : note,
         );
       }
+      await HapticFeedback.lightImpact();
       if (!mounted) return;
-      context.pop();
+      if (addAnother) {
+        _noteController.clear();
+        setState(() {
+          _saving = false;
+          _amount = const AmountInput();
+        });
+        _showMessage(context.l10n.expenseSavedAnother);
+      } else {
+        context.pop();
+      }
     } catch (error) {
       if (!mounted) return;
       setState(() => _saving = false);

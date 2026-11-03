@@ -168,6 +168,7 @@ class _ExpensesPageState extends ConsumerState<ExpensesPage> {
                               item: item,
                               currency: currency,
                               onDelete: () => _delete(item),
+                              onLongPress: () => _showActions(item),
                             ),
                           const SizedBox(height: 12),
                         ],
@@ -215,6 +216,51 @@ class _ExpensesPageState extends ConsumerState<ExpensesPage> {
     setState(() => _paymentMethodId = selected.isEmpty ? null : selected);
   }
 
+  Future<void> _showActions(ExpenseView item) async {
+    final action = await showModalBottomSheet<_ExpenseAction>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.edit_outlined),
+              title: Text(context.l10n.actionEdit),
+              onTap: () => Navigator.of(context).pop(_ExpenseAction.edit),
+            ),
+            ListTile(
+              leading: const Icon(Icons.copy_outlined),
+              title: Text(context.l10n.actionDuplicate),
+              onTap: () => Navigator.of(context).pop(_ExpenseAction.duplicate),
+            ),
+            ListTile(
+              leading: Icon(
+                Icons.delete_outline,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              title: Text(
+                context.l10n.actionDelete,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+              onTap: () => Navigator.of(context).pop(_ExpenseAction.delete),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted || action == null) return;
+
+    switch (action) {
+      case _ExpenseAction.edit:
+        context.push('/expenses/${item.expense.id}/edit');
+      case _ExpenseAction.duplicate:
+        context.push('/expenses/${item.expense.id}/duplicate');
+      case _ExpenseAction.delete:
+        await _delete(item);
+    }
+  }
+
   Future<void> _delete(ExpenseView item) async {
     await ref.read(databaseProvider).deleteExpense(item.expense.id);
     if (!mounted) return;
@@ -240,6 +286,8 @@ class _ExpensesPageState extends ConsumerState<ExpensesPage> {
     );
   }
 }
+
+enum _ExpenseAction { edit, duplicate, delete }
 
 class _OptionSheet extends StatelessWidget {
   const _OptionSheet({
@@ -332,11 +380,13 @@ class _ExpenseTile extends StatelessWidget {
     required this.item,
     required this.currency,
     required this.onDelete,
+    required this.onLongPress,
   });
 
   final ExpenseView item;
   final String currency;
   final VoidCallback onDelete;
+  final VoidCallback onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -384,35 +434,39 @@ class _ExpenseTile extends StatelessWidget {
         ),
         child: Icon(Icons.delete_outline, color: scheme.onErrorContainer),
       ),
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 8),
-        child: ListTile(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          leading: CircleAvatar(
-            backgroundColor: Color(item.category.color).withValues(alpha: 0.15),
-            child: Text(item.category.icon),
-          ),
-          title: Text(item.category.name),
-          subtitle: subtitleParts.isEmpty
-              ? null
-              : Text(
-                  subtitleParts.join(' · '),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-          trailing: Text(
-            Money.format(
-              item.expense.amountCents,
-              currency,
-              locale: localeNameOf(context),
+      child: GestureDetector(
+        onLongPress: onLongPress,
+        child: Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          child: ListTile(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
+            leading: CircleAvatar(
+              backgroundColor: Color(item.category.color)
+                  .withValues(alpha: 0.15),
+              child: Text(item.category.icon),
             ),
+            title: Text(item.category.name),
+            subtitle: subtitleParts.isEmpty
+                ? null
+                : Text(
+                    subtitleParts.join(' · '),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+            trailing: Text(
+              Money.format(
+                item.expense.amountCents,
+                currency,
+                locale: localeNameOf(context),
+              ),
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            onTap: () => context.push('/expenses/${item.expense.id}/edit'),
           ),
-          onTap: () => context.push('/expenses/${item.expense.id}/edit'),
         ),
       ),
     );

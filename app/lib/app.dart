@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/app_shortcuts.dart';
 import 'core/locale_settings.dart';
 import 'core/theme.dart';
 import 'core/theme_settings.dart';
@@ -41,7 +42,49 @@ class XzifraApp extends ConsumerWidget {
       locale: localeSetting.locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
+      builder: (context, child) =>
+          _ShortcutLabelSync(child: child ?? const SizedBox.shrink()),
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
     );
   }
+}
+
+/// Keeps the launcher shortcut labels in sync with the resolved app language
+/// and releases shortcut navigation after the router's first frame.
+class _ShortcutLabelSync extends StatefulWidget {
+  const _ShortcutLabelSync({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_ShortcutLabelSync> createState() => _ShortcutLabelSyncState();
+}
+
+class _ShortcutLabelSyncState extends State<_ShortcutLabelSync> {
+  Locale? _locale;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AppShortcuts.markReady();
+      if (mounted) _syncLabels();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncLabels();
+  }
+
+  void _syncLabels() {
+    final locale = Localizations.localeOf(context);
+    if (_locale == locale) return;
+    _locale = locale;
+    AppShortcuts.updateLabels(AppLocalizations.of(context));
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

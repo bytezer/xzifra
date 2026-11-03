@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'app.dart';
+import 'core/app_shortcuts.dart';
 import 'core/locale_settings.dart';
 import 'core/theme_settings.dart';
 import 'data/database.dart';
@@ -31,6 +32,10 @@ Future<void> main() async {
     await preloaded?.close();
     preloaded = null;
   }
+
+  // Read the launch shortcut before the first frame. Actions that arrive
+  // before the router is mounted are kept pending by AppShortcuts.
+  await AppShortcuts.initialize();
 
   runApp(
     ProviderScope(

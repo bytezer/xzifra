@@ -194,6 +194,12 @@ abstract class AppLocalizations {
   /// **'Archive'**
   String get actionArchive;
 
+  /// No description provided for @actionDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get actionDuplicate;
+
   /// No description provided for @labelNone.
   ///
   /// In en, this message translates to:
@@ -266,6 +272,18 @@ abstract class AppLocalizations {
   /// **'Add expense'**
   String get tooltipAddExpense;
 
+  /// No description provided for @shortcutNewExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'New expense'**
+  String get shortcutNewExpense;
+
+  /// No description provided for @shortcutReports.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports'**
+  String get shortcutReports;
+
   /// No description provided for @dashboardSpentThisMonth.
   ///
   /// In en, this message translates to:
@@ -289,6 +307,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View all'**
   String get dashboardViewAll;
+
+  /// No description provided for @dashboardRepeatLast.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat last'**
+  String get dashboardRepeatLast;
 
   /// No description provided for @dashboardNoExpensesTitle.
   ///
@@ -452,6 +476,12 @@ abstract class AppLocalizations {
   /// **'Edit expense'**
   String get expenseEditTitle;
 
+  /// No description provided for @expenseDuplicateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate expense'**
+  String get expenseDuplicateTitle;
+
   /// No description provided for @expenseAmount.
   ///
   /// In en, this message translates to:
@@ -499,6 +529,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save changes'**
   String get expenseSaveChanges;
+
+  /// No description provided for @expenseSaveAndAddAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Save & add another'**
+  String get expenseSaveAndAddAnother;
+
+  /// No description provided for @expenseSavedAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense saved. Add another.'**
+  String get expenseSavedAnother;
 
   /// No description provided for @expenseAmountError.
   ///

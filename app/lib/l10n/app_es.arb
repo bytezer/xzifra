@@ -19,6 +19,7 @@
   "actionMoveUp": "Subir",
   "actionMoveDown": "Bajar",
   "actionArchive": "Archivar",
+  "actionDuplicate": "Duplicar",
 
   "labelNone": "Ninguno",
   "labelOptional": "Opcional",
@@ -35,10 +36,14 @@
   "tooltipNextMonth": "Mes siguiente",
   "tooltipAddExpense": "Agregar gasto",
 
+  "shortcutNewExpense": "Nuevo gasto",
+  "shortcutReports": "Reportes",
+
   "dashboardSpentThisMonth": "Gastado este mes",
   "dashboardTopCategories": "Categorías principales",
   "dashboardRecentExpenses": "Gastos recientes",
   "dashboardViewAll": "Ver todo",
+  "dashboardRepeatLast": "Repetir último",
   "dashboardNoExpensesTitle": "Sin gastos este mes",
   "dashboardNoExpensesMessage": "Agrega tu primer gasto para ver el desglose.",
   "dashboardAddExpense": "Agregar gasto",
@@ -68,6 +73,7 @@
 
   "expenseNewTitle": "Nuevo gasto",
   "expenseEditTitle": "Editar gasto",
+  "expenseDuplicateTitle": "Duplicar gasto",
   "expenseAmount": "Monto",
   "expenseCurrency": "Moneda",
   "expenseCategory": "Categoría",
@@ -76,6 +82,8 @@
   "expenseNote": "Nota",
   "expenseSave": "Guardar gasto",
   "expenseSaveChanges": "Guardar cambios",
+  "expenseSaveAndAddAnother": "Guardar y agregar otro",
+  "expenseSavedAnother": "Gasto guardado. Agrega otro.",
   "expenseAmountError": "Ingresa un monto mayor que cero.",
   "expenseCategoryError": "Elige una categoría.",
   "expenseSaveError": "No se pudo guardar el gasto. Inténtalo de nuevo.",

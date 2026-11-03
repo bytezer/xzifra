@@ -117,6 +117,17 @@ class DashboardPage extends ConsumerWidget {
                           _RecentRow(item: item, currency: currency),
                           if (item != recent.last) const Divider(height: 1),
                         ],
+                        const SizedBox(height: 4),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton.icon(
+                            onPressed: () => context.push(
+                              '/expenses/${recent.first.expense.id}/duplicate',
+                            ),
+                            icon: const Icon(Icons.replay_outlined, size: 18),
+                            label: Text(context.l10n.dashboardRepeatLast),
+                          ),
+                        ),
                       ],
                     ),
             ),

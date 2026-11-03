@@ -19,6 +19,7 @@
   "actionMoveUp": "Move up",
   "actionMoveDown": "Move down",
   "actionArchive": "Archive",
+  "actionDuplicate": "Duplicate",
 
   "labelNone": "None",
   "labelOptional": "Optional",
@@ -35,10 +36,14 @@
   "tooltipNextMonth": "Next month",
   "tooltipAddExpense": "Add expense",
 
+  "shortcutNewExpense": "New expense",
+  "shortcutReports": "Reports",
+
   "dashboardSpentThisMonth": "Spent this month",
   "dashboardTopCategories": "Top categories",
   "dashboardRecentExpenses": "Recent expenses",
   "dashboardViewAll": "View all",
+  "dashboardRepeatLast": "Repeat last",
   "dashboardNoExpensesTitle": "No expenses this month",
   "dashboardNoExpensesMessage": "Add your first expense to see the breakdown.",
   "dashboardAddExpense": "Add expense",
@@ -89,6 +94,7 @@
 
   "expenseNewTitle": "New expense",
   "expenseEditTitle": "Edit expense",
+  "expenseDuplicateTitle": "Duplicate expense",
   "expenseAmount": "Amount",
   "expenseCurrency": "Currency",
   "expenseCategory": "Category",
@@ -97,6 +103,8 @@
   "expenseNote": "Note",
   "expenseSave": "Save expense",
   "expenseSaveChanges": "Save changes",
+  "expenseSaveAndAddAnother": "Save & add another",
+  "expenseSavedAnother": "Expense saved. Add another.",
   "expenseAmountError": "Enter an amount greater than zero.",
   "expenseCategoryError": "Choose a category.",
   "expenseSaveError": "Could not save the expense. Please try again.",

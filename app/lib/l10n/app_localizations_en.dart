@@ -58,6 +58,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get actionArchive => 'Archive';
 
   @override
+  String get actionDuplicate => 'Duplicate';
+
+  @override
   String get labelNone => 'None';
 
   @override
@@ -94,6 +97,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tooltipAddExpense => 'Add expense';
 
   @override
+  String get shortcutNewExpense => 'New expense';
+
+  @override
+  String get shortcutReports => 'Reports';
+
+  @override
   String get dashboardSpentThisMonth => 'Spent this month';
 
   @override
@@ -104,6 +113,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboardViewAll => 'View all';
+
+  @override
+  String get dashboardRepeatLast => 'Repeat last';
 
   @override
   String get dashboardNoExpensesTitle => 'No expenses this month';
@@ -196,6 +208,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get expenseEditTitle => 'Edit expense';
 
   @override
+  String get expenseDuplicateTitle => 'Duplicate expense';
+
+  @override
   String get expenseAmount => 'Amount';
 
   @override
@@ -218,6 +233,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get expenseSaveChanges => 'Save changes';
+
+  @override
+  String get expenseSaveAndAddAnother => 'Save & add another';
+
+  @override
+  String get expenseSavedAnother => 'Expense saved. Add another.';
 
   @override
   String get expenseAmountError => 'Enter an amount greater than zero.';
