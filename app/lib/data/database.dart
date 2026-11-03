@@ -47,8 +47,10 @@ class PaymentMethods extends Table {
   TextColumn get id => text()();
   TextColumn get name => text().withLength(min: 1, max: 60)();
 
-  /// cash | yape | plin | debit | credit | transfer
+  /// Legacy type, kept for backups and backwards compatibility. The UI no
+  /// longer exposes it: payment methods are user-defined like categories.
   TextColumn get type => text()();
+  TextColumn get icon => text().withDefault(const Constant('💳'))();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
   DateTimeColumn get archivedAt => dateTime().nullable()();
 
@@ -97,13 +99,19 @@ class AppDatabase extends _$AppDatabase {
   static const _uuid = Uuid();
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) async {
       await m.createAll();
       await _seed();
+    },
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.addColumn(paymentMethods, paymentMethods.icon);
+        await _backfillPaymentMethodIcons();
+      }
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
@@ -504,14 +512,15 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> addPaymentMethod({
     required String name,
-    required String type,
+    required String icon,
   }) async {
     final order = await _nextPaymentMethodOrder();
     await into(paymentMethods).insert(
       PaymentMethodsCompanion.insert(
         id: _uuid.v4(),
         name: name,
-        type: type,
+        type: 'custom',
+        icon: Value(icon),
         sortOrder: Value(order),
       ),
     );
@@ -520,10 +529,10 @@ class AppDatabase extends _$AppDatabase {
   Future<void> updatePaymentMethod(
     String id, {
     required String name,
-    required String type,
+    required String icon,
   }) async {
     await (update(paymentMethods)..where((t) => t.id.equals(id))).write(
-      PaymentMethodsCompanion(name: Value(name), type: Value(type)),
+      PaymentMethodsCompanion(name: Value(name), icon: Value(icon)),
     );
   }
 
@@ -617,6 +626,7 @@ class AppDatabase extends _$AppDatabase {
             'id': row.id,
             'name': row.name,
             'type': row.type,
+            'icon': row.icon,
             'sortOrder': row.sortOrder,
             'archivedAt': row.archivedAt?.toUtc().toIso8601String(),
           },
@@ -674,7 +684,8 @@ class AppDatabase extends _$AppDatabase {
           PaymentMethodsCompanion.insert(
             id: map['id'] as String,
             name: map['name'] as String,
-            type: map['type'] as String? ?? 'cash',
+            type: map['type'] as String? ?? 'custom',
+            icon: Value(map['icon'] as String? ?? '💳'),
             sortOrder: Value(map['sortOrder'] as int? ?? 0),
             archivedAt: Value(_parseDate(map['archivedAt'])),
           ),
@@ -735,6 +746,21 @@ class AppDatabase extends _$AppDatabase {
     ];
   }
 
+  Future<void> _backfillPaymentMethodIcons() async {
+    const icons = {
+      'cash': '💵',
+      'yape': '📱',
+      'plin': '📱',
+      'debit': '💳',
+      'credit': '💳',
+      'transfer': '🏦',
+    };
+    for (final entry in icons.entries) {
+      await (update(paymentMethods)..where((t) => t.type.equals(entry.key)))
+          .write(PaymentMethodsCompanion(icon: Value(entry.value)));
+    }
+  }
+
   Future<void> _seed() async {
     const seedCategories = [
       ('Food', '🍔', 0xFFE53935),
@@ -749,12 +775,12 @@ class AppDatabase extends _$AppDatabase {
     ];
 
     const seedPaymentMethods = [
-      ('Cash', 'cash'),
-      ('Yape', 'yape'),
-      ('Plin', 'plin'),
-      ('Debit card', 'debit'),
-      ('Credit card', 'credit'),
-      ('Bank transfer', 'transfer'),
+      ('Cash', 'cash', '💵'),
+      ('Yape', 'yape', '📱'),
+      ('Plin', 'plin', '📱'),
+      ('Debit card', 'debit', '💳'),
+      ('Credit card', 'credit', '💳'),
+      ('Bank transfer', 'transfer', '🏦'),
     ];
 
     await batch((b) {
@@ -772,13 +798,14 @@ class AppDatabase extends _$AppDatabase {
         );
       }
       for (var i = 0; i < seedPaymentMethods.length; i++) {
-        final (name, type) = seedPaymentMethods[i];
+        final (name, type, icon) = seedPaymentMethods[i];
         b.insert(
           paymentMethods,
           PaymentMethodsCompanion.insert(
             id: _uuid.v4(),
             name: name,
             type: type,
+            icon: Value(icon),
             sortOrder: Value(i),
           ),
         );

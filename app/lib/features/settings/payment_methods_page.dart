@@ -1,26 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/emoji_palette.dart';
 import '../../core/l10n.dart';
-import '../../core/payment_types.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../data/database.dart';
 import '../../providers.dart';
-
-IconData _iconFor(String type) => switch (type) {
-  'cash' => Icons.payments_outlined,
-  'yape' || 'plin' => Icons.phone_android_outlined,
-  'debit' => Icons.credit_card_outlined,
-  'credit' => Icons.credit_score_outlined,
-  'transfer' => Icons.account_balance_outlined,
-  _ => Icons.account_balance_wallet_outlined,
-};
 
 class PaymentMethodsPage extends ConsumerWidget {
   const PaymentMethodsPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final all =
         ref.watch(allPaymentMethodsProvider).asData?.value ??
@@ -30,11 +22,11 @@ class PaymentMethodsPage extends ConsumerWidget {
     final database = ref.read(databaseProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.paymentMethodsTitle)),
+      appBar: AppBar(title: Text(l10n.paymentMethodsTitle)),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openEditor(context, ref),
         icon: const Icon(Icons.add),
-        label: Text(context.l10n.actionAdd),
+        label: Text(l10n.actionAdd),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
@@ -42,8 +34,8 @@ class PaymentMethodsPage extends ConsumerWidget {
           if (all.isEmpty)
             EmptyState(
               icon: Icons.credit_card_outlined,
-              title: context.l10n.paymentMethodsEmptyTitle,
-              message: context.l10n.paymentMethodsEmptyMessage,
+              title: l10n.paymentMethodsEmptyTitle,
+              message: l10n.paymentMethodsEmptyMessage,
             ),
           for (var index = 0; index < active.length; index++) ...[
             _PaymentMethodTile(
@@ -67,7 +59,7 @@ class PaymentMethodsPage extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
               child: Text(
-                context.l10n.labelArchived,
+                l10n.labelArchived,
                 style: theme.textTheme.labelLarge?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -112,13 +104,14 @@ class PaymentMethodsPage extends ConsumerWidget {
     final l10n = context.l10n;
     final database = ref.read(databaseProvider);
     final controller = TextEditingController(text: method?.name ?? '');
-    var type = method?.type ?? 'cash';
+    var icon = method?.icon ?? '💳';
 
-    final result = await showDialog<({String name, String type})>(
+    final result = await showDialog<({String name, String icon})>(
       context: context,
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
+            final theme = Theme.of(context);
             return AlertDialog(
               title: Text(
                 method == null
@@ -128,6 +121,7 @@ class PaymentMethodsPage extends ConsumerWidget {
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     TextField(
                       controller: controller,
@@ -139,24 +133,35 @@ class PaymentMethodsPage extends ConsumerWidget {
                         counterText: '',
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      initialValue: type,
-                      decoration: InputDecoration(
-                        labelText: l10n.paymentMethodsType,
-                      ),
-                      items: [
-                        for (final typeKey in paymentTypes)
-                          DropdownMenuItem(
-                            value: typeKey,
-                            child: Text(paymentTypeLabel(l10n, typeKey)),
+                    const SizedBox(height: 8),
+                    Text(
+                      l10n.categoriesIcon,
+                      style: theme.textTheme.labelLarge,
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 4,
+                      runSpacing: 4,
+                      children: [
+                        for (final emoji in emojiPalette)
+                          InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () => setDialogState(() => icon = emoji),
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: icon == emoji
+                                    ? theme.colorScheme.primaryContainer
+                                    : null,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                emoji,
+                                style: const TextStyle(fontSize: 20),
+                              ),
+                            ),
                           ),
                       ],
-                      onChanged: (value) {
-                        if (value != null) {
-                          setDialogState(() => type = value);
-                        }
-                      },
                     ),
                   ],
                 ),
@@ -170,7 +175,7 @@ class PaymentMethodsPage extends ConsumerWidget {
                   onPressed: () {
                     final name = controller.text.trim();
                     if (name.isEmpty) return;
-                    Navigator.of(dialogContext).pop((name: name, type: type));
+                    Navigator.of(dialogContext).pop((name: name, icon: icon));
                   },
                   child: Text(l10n.actionSave),
                 ),
@@ -184,12 +189,12 @@ class PaymentMethodsPage extends ConsumerWidget {
     try {
       if (result == null) return;
       if (method == null) {
-        await database.addPaymentMethod(name: result.name, type: result.type);
+        await database.addPaymentMethod(name: result.name, icon: result.icon);
       } else {
         await database.updatePaymentMethod(
           method.id,
           name: result.name,
-          type: result.type,
+          icon: result.icon,
         );
       }
     } finally {
@@ -279,27 +284,16 @@ class _PaymentMethodTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final typeLabel = paymentTypeLabel(l10n, method.type);
-    final englishLabel = paymentTypeEnglishLabel(method.type);
-    final nameMatchesType =
-        method.name.toLowerCase() == typeLabel.toLowerCase() ||
-        method.name.toLowerCase() == englishLabel.toLowerCase();
-    final subtitle = archived
-        ? (nameMatchesType
-              ? l10n.paymentMethodArchived
-              : '${l10n.paymentMethodArchived} · $typeLabel')
-        : (nameMatchesType ? null : typeLabel);
-
     return Card(
       child: ListTile(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         leading: CircleAvatar(
           backgroundColor: Theme.of(context).colorScheme.primaryContainer
               .withValues(alpha: 0.5),
-          child: Icon(_iconFor(method.type), size: 20),
+          child: Text(method.icon, style: const TextStyle(fontSize: 18)),
         ),
         title: Text(method.name),
-        subtitle: subtitle == null ? null : Text(subtitle),
+        subtitle: archived ? Text(l10n.paymentMethodArchived) : null,
         trailing: PopupMenuButton<String>(
           onSelected: (value) {
             switch (value) {

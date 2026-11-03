@@ -1,37 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/emoji_palette.dart';
 import '../../core/l10n.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../data/database.dart';
 import '../../providers.dart';
-
-const List<String> _emojis = [
-  '🍔',
-  '🚌',
-  '🏠',
-  '💡',
-  '🩺',
-  '🎬',
-  '🛍️',
-  '📚',
-  '📦',
-  '☕',
-  '🍺',
-  '✈️',
-  '🎁',
-  '🐾',
-  '💻',
-  '📱',
-  '🏋️',
-  '💊',
-  '🧾',
-  '🚗',
-  '⛽',
-  '🎓',
-  '🧺',
-  '🎮',
-];
 
 const List<int> _palette = [
   0xFFE53935,
@@ -144,7 +118,7 @@ class CategoriesPage extends ConsumerWidget {
     final l10n = context.l10n;
     final database = ref.read(databaseProvider);
     final controller = TextEditingController(text: category?.name ?? '');
-    var icon = category?.icon ?? _emojis.first;
+    var icon = category?.icon ?? emojiPalette.first;
     var color = category?.color ?? _palette.first;
 
     final name = await showDialog<String>(
@@ -185,7 +159,7 @@ class CategoriesPage extends ConsumerWidget {
                       spacing: 4,
                       runSpacing: 4,
                       children: [
-                        for (final emoji in _emojis)
+                        for (final emoji in emojiPalette)
                           InkWell(
                             borderRadius: BorderRadius.circular(8),
                             onTap: () => setDialogState(() => icon = emoji),

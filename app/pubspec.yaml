@@ -1,7 +1,7 @@
 name: xzifra
 description: "Xzifra — a simple, local-first expense tracker for Android."
 publish_to: 'none'
-version: 0.1.0+2
+version: 0.1.0+3
 
 environment:
   sdk: ^3.13.7
@@ -33,6 +33,7 @@ dev_dependencies:
   drift_dev: ^2.35.2
   build_runner: ^2.17.1
   flutter_launcher_icons: ^0.14.4
+  sqlite3: ^3.8.0
 
 flutter:
   generate: true

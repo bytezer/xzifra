@@ -719,7 +719,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsPaymentMethodsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Cash, cards, Yape, Plin and more'**
+  /// **'Create your own list with a name and emoji'**
   String get settingsPaymentMethodsSubtitle;
 
   /// No description provided for @settingsBackup.
@@ -967,42 +967,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add cash, cards or wallets to track how you pay.'**
   String get paymentMethodsEmptyMessage;
-
-  /// No description provided for @paymentTypeCash.
-  ///
-  /// In en, this message translates to:
-  /// **'Cash'**
-  String get paymentTypeCash;
-
-  /// No description provided for @paymentTypeYape.
-  ///
-  /// In en, this message translates to:
-  /// **'Yape'**
-  String get paymentTypeYape;
-
-  /// No description provided for @paymentTypePlin.
-  ///
-  /// In en, this message translates to:
-  /// **'Plin'**
-  String get paymentTypePlin;
-
-  /// No description provided for @paymentTypeDebit.
-  ///
-  /// In en, this message translates to:
-  /// **'Debit card'**
-  String get paymentTypeDebit;
-
-  /// No description provided for @paymentTypeCredit.
-  ///
-  /// In en, this message translates to:
-  /// **'Credit card'**
-  String get paymentTypeCredit;
-
-  /// No description provided for @paymentTypeTransfer.
-  ///
-  /// In en, this message translates to:
-  /// **'Bank transfer'**
-  String get paymentTypeTransfer;
 
   /// No description provided for @aboutTitle.
   ///

@@ -10,8 +10,8 @@ budgets.
   method. Two taps to record an expense.
 - **Your own categories** — create, rename, recolor, reorder, archive. Categories
   with expenses are archived instead of deleted, so history never breaks.
-- **Payment methods** — cash, Yape, Plin, debit, credit and bank transfer, plus
-  any custom ones you add.
+- **Payment methods** — build your own list with a name and emoji (cash, Yape,
+  Plin, cards, transfers…), then rename, reorder or archive them like categories.
 - **PEN and USD** — totals are always kept separate per currency. No exchange
   rates, no hidden conversions.
 - **Reports** — spending by category, last 12 months, and by payment method, with

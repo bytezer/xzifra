@@ -334,7 +334,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settingsPaymentMethodsSubtitle =>
-      'Efectivo, tarjetas, Yape, Plin y más';
+      'Crea tu lista con nombre y emoji';
 
   @override
   String get settingsBackup => 'Copia de seguridad';
@@ -489,24 +489,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get paymentMethodsEmptyMessage =>
       'Agrega efectivo, tarjetas o billeteras para saber cómo pagas.';
-
-  @override
-  String get paymentTypeCash => 'Efectivo';
-
-  @override
-  String get paymentTypeYape => 'Yape';
-
-  @override
-  String get paymentTypePlin => 'Plin';
-
-  @override
-  String get paymentTypeDebit => 'Tarjeta de débito';
-
-  @override
-  String get paymentTypeCredit => 'Tarjeta de crédito';
-
-  @override
-  String get paymentTypeTransfer => 'Transferencia bancaria';
 
   @override
   String get aboutTitle => 'Acerca de';

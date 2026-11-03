@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show driftRuntimeOptions;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqlite3/sqlite3.dart' as sqlite;
 import 'package:xzifra/data/database.dart';
 
 void main() {
@@ -30,8 +31,56 @@ void main() {
 
   test('seeds default categories, payment methods and settings', () async {
     expect((await database.select(database.categories).get()).length, 9);
-    expect((await database.select(database.paymentMethods).get()).length, 6);
+    final methods = await database.select(database.paymentMethods).get();
+    expect(methods.length, 6);
+    expect(methods.firstWhere((m) => m.name == 'Cash').icon, '💵');
+    expect(methods.firstWhere((m) => m.name == 'Bank transfer').icon, '🏦');
     expect(await database.getSetting('defaultCurrency'), 'PEN');
+  });
+
+  test('payment methods are user-defined with a name and emoji', () async {
+    await database.addPaymentMethod(name: 'BCP', icon: '🏦');
+    final bcp = await methodNamed('BCP');
+    expect(bcp.icon, '🏦');
+    expect(bcp.type, 'custom');
+
+    await database.updatePaymentMethod(bcp.id, name: 'Interbank', icon: '💳');
+    final updated = await methodNamed('Interbank');
+    expect(updated.icon, '💳');
+  });
+
+  test('migrates v1 payment methods and backfills icons', () async {
+    final raw = sqlite.sqlite3.openInMemory();
+    raw.execute('''
+      CREATE TABLE payment_methods (
+        id TEXT NOT NULL PRIMARY KEY,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        archived_at INTEGER NULL
+      );
+    ''');
+    raw.execute(
+      "INSERT INTO payment_methods (id, name, type, sort_order) "
+      "VALUES ('cash-id', 'Cash', 'cash', 0)",
+    );
+    raw.execute(
+      "INSERT INTO payment_methods (id, name, type, sort_order) "
+      "VALUES ('yape-id', 'Yape', 'yape', 1)",
+    );
+    raw.execute(
+      "INSERT INTO payment_methods (id, name, type, sort_order) "
+      "VALUES ('debit-id', 'Debit card', 'debit', 2)",
+    );
+    raw.execute('PRAGMA user_version = 1;');
+
+    final migrated = AppDatabase(NativeDatabase.opened(raw));
+    addTearDown(migrated.close);
+
+    final methods = await migrated.select(migrated.paymentMethods).get();
+    expect(methods.firstWhere((item) => item.name == 'Cash').icon, '💵');
+    expect(methods.firstWhere((item) => item.name == 'Yape').icon, '📱');
+    expect(methods.firstWhere((item) => item.name == 'Debit card').icon, '💳');
   });
 
   test('aggregates totals by category, month and payment method', () async {
@@ -284,6 +333,7 @@ void main() {
         .first;
     expect(items.single.expense.note, 'Lunch');
     expect(items.single.category.name, 'Food');
+    expect(items.single.paymentMethod?.icon, '💵');
   });
 
   test('import rejects files that are not Xzifra backups', () async {

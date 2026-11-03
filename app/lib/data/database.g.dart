@@ -446,6 +446,16 @@ class $PaymentMethodsTable extends PaymentMethods
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _iconMeta = const VerificationMeta('icon');
+  @override
+  late final GeneratedColumn<String> icon = GeneratedColumn<String>(
+    'icon',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('💳'),
+  );
   static const VerificationMeta _sortOrderMeta = const VerificationMeta(
     'sortOrder',
   );
@@ -470,7 +480,14 @@ class $PaymentMethodsTable extends PaymentMethods
     requiredDuringInsert: false,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, name, type, sortOrder, archivedAt];
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    type,
+    icon,
+    sortOrder,
+    archivedAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -503,6 +520,12 @@ class $PaymentMethodsTable extends PaymentMethods
       );
     } else if (isInserting) {
       context.missing(_typeMeta);
+    }
+    if (data.containsKey('icon')) {
+      context.handle(
+        _iconMeta,
+        icon.isAcceptableOrUnknown(data['icon']!, _iconMeta),
+      );
     }
     if (data.containsKey('sort_order')) {
       context.handle(
@@ -537,6 +560,10 @@ class $PaymentMethodsTable extends PaymentMethods
         DriftSqlType.string,
         data['${effectivePrefix}type'],
       )!,
+      icon: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}icon'],
+      )!,
       sortOrder: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}sort_order'],
@@ -558,14 +585,17 @@ class PaymentMethod extends DataClass implements Insertable<PaymentMethod> {
   final String id;
   final String name;
 
-  /// cash | yape | plin | debit | credit | transfer
+  /// Legacy type, kept for backups and backwards compatibility. The UI no
+  /// longer exposes it: payment methods are user-defined like categories.
   final String type;
+  final String icon;
   final int sortOrder;
   final DateTime? archivedAt;
   const PaymentMethod({
     required this.id,
     required this.name,
     required this.type,
+    required this.icon,
     required this.sortOrder,
     this.archivedAt,
   });
@@ -575,6 +605,7 @@ class PaymentMethod extends DataClass implements Insertable<PaymentMethod> {
     map['id'] = Variable<String>(id);
     map['name'] = Variable<String>(name);
     map['type'] = Variable<String>(type);
+    map['icon'] = Variable<String>(icon);
     map['sort_order'] = Variable<int>(sortOrder);
     if (!nullToAbsent || archivedAt != null) {
       map['archived_at'] = Variable<DateTime>(archivedAt);
@@ -587,6 +618,7 @@ class PaymentMethod extends DataClass implements Insertable<PaymentMethod> {
       id: Value(id),
       name: Value(name),
       type: Value(type),
+      icon: Value(icon),
       sortOrder: Value(sortOrder),
       archivedAt: archivedAt == null && nullToAbsent
           ? const Value.absent()
@@ -603,6 +635,7 @@ class PaymentMethod extends DataClass implements Insertable<PaymentMethod> {
       id: serializer.fromJson<String>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       type: serializer.fromJson<String>(json['type']),
+      icon: serializer.fromJson<String>(json['icon']),
       sortOrder: serializer.fromJson<int>(json['sortOrder']),
       archivedAt: serializer.fromJson<DateTime?>(json['archivedAt']),
     );
@@ -614,6 +647,7 @@ class PaymentMethod extends DataClass implements Insertable<PaymentMethod> {
       'id': serializer.toJson<String>(id),
       'name': serializer.toJson<String>(name),
       'type': serializer.toJson<String>(type),
+      'icon': serializer.toJson<String>(icon),
       'sortOrder': serializer.toJson<int>(sortOrder),
       'archivedAt': serializer.toJson<DateTime?>(archivedAt),
     };
@@ -623,12 +657,14 @@ class PaymentMethod extends DataClass implements Insertable<PaymentMethod> {
     String? id,
     String? name,
     String? type,
+    String? icon,
     int? sortOrder,
     Value<DateTime?> archivedAt = const Value.absent(),
   }) => PaymentMethod(
     id: id ?? this.id,
     name: name ?? this.name,
     type: type ?? this.type,
+    icon: icon ?? this.icon,
     sortOrder: sortOrder ?? this.sortOrder,
     archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
   );
@@ -637,6 +673,7 @@ class PaymentMethod extends DataClass implements Insertable<PaymentMethod> {
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       type: data.type.present ? data.type.value : this.type,
+      icon: data.icon.present ? data.icon.value : this.icon,
       sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
       archivedAt: data.archivedAt.present
           ? data.archivedAt.value
@@ -650,6 +687,7 @@ class PaymentMethod extends DataClass implements Insertable<PaymentMethod> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('type: $type, ')
+          ..write('icon: $icon, ')
           ..write('sortOrder: $sortOrder, ')
           ..write('archivedAt: $archivedAt')
           ..write(')'))
@@ -657,7 +695,7 @@ class PaymentMethod extends DataClass implements Insertable<PaymentMethod> {
   }
 
   @override
-  int get hashCode => Object.hash(id, name, type, sortOrder, archivedAt);
+  int get hashCode => Object.hash(id, name, type, icon, sortOrder, archivedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -665,6 +703,7 @@ class PaymentMethod extends DataClass implements Insertable<PaymentMethod> {
           other.id == this.id &&
           other.name == this.name &&
           other.type == this.type &&
+          other.icon == this.icon &&
           other.sortOrder == this.sortOrder &&
           other.archivedAt == this.archivedAt);
 }
@@ -673,6 +712,7 @@ class PaymentMethodsCompanion extends UpdateCompanion<PaymentMethod> {
   final Value<String> id;
   final Value<String> name;
   final Value<String> type;
+  final Value<String> icon;
   final Value<int> sortOrder;
   final Value<DateTime?> archivedAt;
   final Value<int> rowid;
@@ -680,6 +720,7 @@ class PaymentMethodsCompanion extends UpdateCompanion<PaymentMethod> {
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.type = const Value.absent(),
+    this.icon = const Value.absent(),
     this.sortOrder = const Value.absent(),
     this.archivedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -688,6 +729,7 @@ class PaymentMethodsCompanion extends UpdateCompanion<PaymentMethod> {
     required String id,
     required String name,
     required String type,
+    this.icon = const Value.absent(),
     this.sortOrder = const Value.absent(),
     this.archivedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -698,6 +740,7 @@ class PaymentMethodsCompanion extends UpdateCompanion<PaymentMethod> {
     Expression<String>? id,
     Expression<String>? name,
     Expression<String>? type,
+    Expression<String>? icon,
     Expression<int>? sortOrder,
     Expression<DateTime>? archivedAt,
     Expression<int>? rowid,
@@ -706,6 +749,7 @@ class PaymentMethodsCompanion extends UpdateCompanion<PaymentMethod> {
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (type != null) 'type': type,
+      if (icon != null) 'icon': icon,
       if (sortOrder != null) 'sort_order': sortOrder,
       if (archivedAt != null) 'archived_at': archivedAt,
       if (rowid != null) 'rowid': rowid,
@@ -716,6 +760,7 @@ class PaymentMethodsCompanion extends UpdateCompanion<PaymentMethod> {
     Value<String>? id,
     Value<String>? name,
     Value<String>? type,
+    Value<String>? icon,
     Value<int>? sortOrder,
     Value<DateTime?>? archivedAt,
     Value<int>? rowid,
@@ -724,6 +769,7 @@ class PaymentMethodsCompanion extends UpdateCompanion<PaymentMethod> {
       id: id ?? this.id,
       name: name ?? this.name,
       type: type ?? this.type,
+      icon: icon ?? this.icon,
       sortOrder: sortOrder ?? this.sortOrder,
       archivedAt: archivedAt ?? this.archivedAt,
       rowid: rowid ?? this.rowid,
@@ -741,6 +787,9 @@ class PaymentMethodsCompanion extends UpdateCompanion<PaymentMethod> {
     }
     if (type.present) {
       map['type'] = Variable<String>(type.value);
+    }
+    if (icon.present) {
+      map['icon'] = Variable<String>(icon.value);
     }
     if (sortOrder.present) {
       map['sort_order'] = Variable<int>(sortOrder.value);
@@ -760,6 +809,7 @@ class PaymentMethodsCompanion extends UpdateCompanion<PaymentMethod> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('type: $type, ')
+          ..write('icon: $icon, ')
           ..write('sortOrder: $sortOrder, ')
           ..write('archivedAt: $archivedAt, ')
           ..write('rowid: $rowid')
@@ -1924,6 +1974,7 @@ typedef $$PaymentMethodsTableCreateCompanionBuilder =
       required String id,
       required String name,
       required String type,
+      Value<String> icon,
       Value<int> sortOrder,
       Value<DateTime?> archivedAt,
       Value<int> rowid,
@@ -1933,6 +1984,7 @@ typedef $$PaymentMethodsTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> name,
       Value<String> type,
+      Value<String> icon,
       Value<int> sortOrder,
       Value<DateTime?> archivedAt,
       Value<int> rowid,
@@ -1986,6 +2038,11 @@ class $$PaymentMethodsTableFilterComposer
 
   ColumnFilters<String> get type => $composableBuilder(
     column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get icon => $composableBuilder(
+    column: $table.icon,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2049,6 +2106,11 @@ class $$PaymentMethodsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get icon => $composableBuilder(
+    column: $table.icon,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get sortOrder => $composableBuilder(
     column: $table.sortOrder,
     builder: (column) => ColumnOrderings(column),
@@ -2077,6 +2139,9 @@ class $$PaymentMethodsTableAnnotationComposer
 
   GeneratedColumn<String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get icon =>
+      $composableBuilder(column: $table.icon, builder: (column) => column);
 
   GeneratedColumn<int> get sortOrder =>
       $composableBuilder(column: $table.sortOrder, builder: (column) => column);
@@ -2145,6 +2210,7 @@ class $$PaymentMethodsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String> type = const Value.absent(),
+                Value<String> icon = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 Value<DateTime?> archivedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -2152,6 +2218,7 @@ class $$PaymentMethodsTableTableManager
                 id: id,
                 name: name,
                 type: type,
+                icon: icon,
                 sortOrder: sortOrder,
                 archivedAt: archivedAt,
                 rowid: rowid,
@@ -2161,6 +2228,7 @@ class $$PaymentMethodsTableTableManager
                 required String id,
                 required String name,
                 required String type,
+                Value<String> icon = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 Value<DateTime?> archivedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -2168,6 +2236,7 @@ class $$PaymentMethodsTableTableManager
                 id: id,
                 name: name,
                 type: type,
+                icon: icon,
                 sortOrder: sortOrder,
                 archivedAt: archivedAt,
                 rowid: rowid,

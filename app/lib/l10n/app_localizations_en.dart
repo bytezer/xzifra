@@ -331,7 +331,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsPaymentMethodsSubtitle =>
-      'Cash, cards, Yape, Plin and more';
+      'Create your own list with a name and emoji';
 
   @override
   String get settingsBackup => 'Backup';
@@ -485,24 +485,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get paymentMethodsEmptyMessage =>
       'Add cash, cards or wallets to track how you pay.';
-
-  @override
-  String get paymentTypeCash => 'Cash';
-
-  @override
-  String get paymentTypeYape => 'Yape';
-
-  @override
-  String get paymentTypePlin => 'Plin';
-
-  @override
-  String get paymentTypeDebit => 'Debit card';
-
-  @override
-  String get paymentTypeCredit => 'Credit card';
-
-  @override
-  String get paymentTypeTransfer => 'Bank transfer';
 
   @override
   String get aboutTitle => 'About';
