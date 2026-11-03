@@ -95,8 +95,23 @@ app/lib/
   features/    dashboard, expenses, reports, settings
   routing/     go_router configuration and app shell
 app/test/      unit and database tests
-scripts/       build-apk.sh
+app/assets/    launcher icon sources
+scripts/       build-apk.sh, generate_icon.py
 docs/          signing notes
+```
+
+## Icon
+
+The launcher icon is a monogram **X** derived from [Lucide](https://lucide.dev/icons/x)'s
+`x` icon (ISC, derived from Feather/MIT), composed on the app's indigo seed
+color (`#4F46E5`) with two ledger rules. Sources and license live in
+`app/assets/icon/`.
+
+Regenerate the master PNGs and the Android resources with:
+
+```bash
+python3 scripts/generate_icon.py
+cd app && dart run flutter_launcher_icons
 ```
 
 ## Data and backups
