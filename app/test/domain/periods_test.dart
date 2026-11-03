@@ -1,7 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:xzifra/domain/periods.dart';
 
 void main() {
+  setUpAll(() async {
+    await initializeDateFormatting('es');
+  });
+
   group('Periods keys', () {
     test('dateKey pads month and day', () {
       expect(Periods.dateKey(DateTime(2026, 1, 5)), '2026-01-05');
@@ -54,6 +59,31 @@ void main() {
 
     test('dayLabel falls back to a formatted date', () {
       expect(Periods.dayLabel('2026-03-07'), 'Sat, Mar 7');
+    });
+
+    test('dayLabel accepts localized today/yesterday labels', () {
+      final now = DateTime.now();
+      expect(
+        Periods.dayLabel(
+          Periods.dateKey(now),
+          locale: 'es',
+          today: 'Hoy',
+          yesterday: 'Ayer',
+        ),
+        'Hoy',
+      );
+    });
+
+    test('formats Spanish dates and months', () {
+      expect(Periods.dayLabel('2026-03-07', locale: 'es'), 'sáb, 7 mar');
+      expect(
+        Periods.monthLabel(DateTime(2026, 11), locale: 'es'),
+        'noviembre de 2026',
+      );
+      expect(
+        Periods.fullDateLabel(DateTime(2026, 3, 7), locale: 'es'),
+        'sábado, 7 de marzo de 2026',
+      );
     });
 
     test('isCurrentMonth', () {

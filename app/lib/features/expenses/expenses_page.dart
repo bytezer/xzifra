@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/l10n.dart';
 import '../../core/widgets/currency_selector.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/month_selector.dart';
@@ -59,7 +60,7 @@ class _ExpensesPageState extends ConsumerState<ExpensesPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Expenses'),
+        title: Text(context.l10n.expensesTitle),
         actions: [
           if (hasFilters)
             TextButton(
@@ -67,7 +68,7 @@ class _ExpensesPageState extends ConsumerState<ExpensesPage> {
                 _categoryId = null;
                 _paymentMethodId = null;
               }),
-              child: const Text('Clear'),
+              child: Text(context.l10n.actionClear),
             ),
         ],
       ),
@@ -94,9 +95,9 @@ class _ExpensesPageState extends ConsumerState<ExpensesPage> {
                               FilterChip(
                                 label: Text(
                                   _categoryId == null
-                                      ? 'Category'
+                                      ? context.l10n.expensesFilterCategory
                                       : categoriesById[_categoryId]?.name ??
-                                            'Category',
+                                            context.l10n.expensesFilterCategory,
                                 ),
                                 selected: _categoryId != null,
                                 onSelected: (_) => _pickCategory(categories),
@@ -105,9 +106,9 @@ class _ExpensesPageState extends ConsumerState<ExpensesPage> {
                               FilterChip(
                                 label: Text(
                                   _paymentMethodId == null
-                                      ? 'Payment'
+                                      ? context.l10n.expensesFilterPayment
                                       : methodsById[_paymentMethodId]?.name ??
-                                            'Payment',
+                                            context.l10n.expensesFilterPayment,
                                 ),
                                 selected: _paymentMethodId != null,
                                 onSelected: (_) =>
@@ -130,18 +131,20 @@ class _ExpensesPageState extends ConsumerState<ExpensesPage> {
                         child: EmptyState(
                           icon: Icons.receipt_long_outlined,
                           title: hasFilters
-                              ? 'No matches'
-                              : 'No expenses this month',
+                              ? context.l10n.expensesNoMatchesTitle
+                              : context.l10n.expensesEmptyTitle,
                           message: hasFilters
-                              ? 'Try a different category or payment method.'
-                              : 'Tap the + button to record one.',
+                              ? context.l10n.expensesNoMatchesMessage
+                              : context.l10n.expensesEmptyMessage,
                           action: hasFilters
                               ? OutlinedButton(
                                   onPressed: () => setState(() {
                                     _categoryId = null;
                                     _paymentMethodId = null;
                                   }),
-                                  child: const Text('Clear filters'),
+                                  child: Text(
+                                    context.l10n.expensesClearFilters,
+                                  ),
                                 )
                               : null,
                         ),
@@ -182,8 +185,8 @@ class _ExpensesPageState extends ConsumerState<ExpensesPage> {
       context: context,
       showDragHandle: true,
       builder: (context) => _OptionSheet(
-        title: 'Filter by category',
-        allLabel: 'All categories',
+        title: context.l10n.expensesFilterByCategory,
+        allLabel: context.l10n.expensesAllCategories,
         options: [
           for (final item in categories)
             (value: item.id, label: '${item.icon}  ${item.name}'),
@@ -200,8 +203,8 @@ class _ExpensesPageState extends ConsumerState<ExpensesPage> {
       context: context,
       showDragHandle: true,
       builder: (context) => _OptionSheet(
-        title: 'Filter by payment method',
-        allLabel: 'All payment methods',
+        title: context.l10n.expensesFilterByPayment,
+        allLabel: context.l10n.expensesAllPaymentMethods,
         options: [
           for (final item in methods) (value: item.id, label: item.name),
         ],
@@ -217,9 +220,9 @@ class _ExpensesPageState extends ConsumerState<ExpensesPage> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Deleted ${item.category.name} expense'),
+        content: Text(context.l10n.expensesDeleted(item.category.name)),
         action: SnackBarAction(
-          label: 'Undo',
+          label: context.l10n.actionUndo,
           onPressed: () {
             ref
                 .read(databaseProvider)
@@ -301,14 +304,19 @@ class _DayHeader extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              Periods.dayLabel(date),
+              Periods.dayLabel(
+                date,
+                locale: localeNameOf(context),
+                today: context.l10n.today,
+                yesterday: context.l10n.yesterday,
+              ),
               style: theme.textTheme.labelLarge?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
           ),
           Text(
-            Money.format(total, currency),
+            Money.format(total, currency, locale: localeNameOf(context)),
             style: theme.textTheme.labelLarge?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -347,18 +355,18 @@ class _ExpenseTile extends StatelessWidget {
         return await showDialog<bool>(
               context: context,
               builder: (context) => AlertDialog(
-                title: const Text('Delete expense?'),
+                title: Text(context.l10n.expensesDeleteTitle),
                 content: Text(
-                  '${Money.format(item.expense.amountCents, currency)} · ${item.category.name}',
+                  '${Money.format(item.expense.amountCents, currency, locale: localeNameOf(context))} · ${item.category.name}',
                 ),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(false),
-                    child: const Text('Cancel'),
+                    child: Text(context.l10n.actionCancel),
                   ),
                   FilledButton(
                     onPressed: () => Navigator.of(context).pop(true),
-                    child: const Text('Delete'),
+                    child: Text(context.l10n.actionDelete),
                   ),
                 ],
               ),
@@ -395,7 +403,11 @@ class _ExpenseTile extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
           trailing: Text(
-            Money.format(item.expense.amountCents, currency),
+            Money.format(
+              item.expense.amountCents,
+              currency,
+              locale: localeNameOf(context),
+            ),
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w600,
             ),

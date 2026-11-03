@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/l10n.dart';
 import '../../core/widgets/currency_selector.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/month_selector.dart';
@@ -80,7 +81,7 @@ class ReportsPage extends ConsumerWidget {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Reports')),
+      appBar: AppBar(title: Text(context.l10n.reportsTitle)),
       body: SafeArea(
         top: false,
         child: ListView(
@@ -94,12 +95,12 @@ class ReportsPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             SectionCard(
-              title: 'By category',
+              title: context.l10n.reportsByCategory,
               child: categoryTotals.isEmpty
-                  ? const EmptyState(
+                  ? EmptyState(
                       icon: Icons.pie_chart_outline,
-                      title: 'No data for this month',
-                      message: 'Record an expense to see the breakdown.',
+                      title: context.l10n.reportsNoDataTitle,
+                      message: context.l10n.reportsNoDataMessage,
                     )
                   : Column(
                       children: [
@@ -132,13 +133,17 @@ class ReportsPage extends ConsumerWidget {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    'Total',
+                                    context.l10n.reportsTotal,
                                     style: theme.textTheme.labelSmall?.copyWith(
                                       color: scheme.onSurfaceVariant,
                                     ),
                                   ),
                                   Text(
-                                    Money.format(total, currency),
+                                    Money.format(
+                                      total,
+                                      currency,
+                                      locale: localeNameOf(context),
+                                    ),
                                     style: theme.textTheme.titleMedium
                                         ?.copyWith(fontWeight: FontWeight.w700),
                                   ),
@@ -152,7 +157,7 @@ class ReportsPage extends ConsumerWidget {
                           _LegendRow(
                             label:
                                 categoriesById[item.categoryId]?.name ??
-                                'Unknown',
+                                context.l10n.labelUnknownCategory,
                             icon: categoriesById[item.categoryId]?.icon ?? '📦',
                             color: Color(
                               categoriesById[item.categoryId]?.color ??
@@ -170,7 +175,7 @@ class ReportsPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             SectionCard(
-              title: 'Last 12 months',
+              title: context.l10n.reportsLast12Months,
               child: SizedBox(
                 height: 220,
                 child: BarChart(
@@ -185,7 +190,11 @@ class ReportsPage extends ConsumerWidget {
                         getTooltipColor: (group) => scheme.inverseSurface,
                         getTooltipItem: (group, groupIndex, rod, rodIndex) =>
                             BarTooltipItem(
-                              Money.format(rod.toY.round(), currency),
+                              Money.format(
+                                rod.toY.round(),
+                                currency,
+                                locale: localeNameOf(context),
+                              ),
                               TextStyle(
                                 color: scheme.onInverseSurface,
                                 fontWeight: FontWeight.w600,
@@ -205,7 +214,11 @@ class ReportsPage extends ConsumerWidget {
                           showTitles: true,
                           reservedSize: 50,
                           getTitlesWidget: (value, meta) => Text(
-                            Money.formatCompact(value.round(), currency),
+                            Money.formatCompact(
+                              value.round(),
+                              currency,
+                              locale: localeNameOf(context),
+                            ),
                             style: theme.textTheme.labelSmall?.copyWith(
                               color: scheme.onSurfaceVariant,
                             ),
@@ -227,7 +240,10 @@ class ReportsPage extends ConsumerWidget {
                             return Padding(
                               padding: const EdgeInsets.only(top: 6),
                               child: Text(
-                                Periods.shortMonthLabel(months[index]),
+                                Periods.shortMonthLabel(
+                                  months[index],
+                                  locale: localeNameOf(context),
+                                ),
                                 style: theme.textTheme.labelSmall?.copyWith(
                                   color: scheme.onSurfaceVariant,
                                 ),
@@ -257,21 +273,21 @@ class ReportsPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             SectionCard(
-              title: 'By payment method',
+              title: context.l10n.reportsByPaymentMethod,
               child: paymentTotals.isEmpty
-                  ? const EmptyState(
+                  ? EmptyState(
                       icon: Icons.credit_card_outlined,
-                      title: 'No data for this month',
-                      message: 'Payment methods will show up here.',
+                      title: context.l10n.reportsNoDataTitle,
+                      message: context.l10n.reportsNoPaymentDataMessage,
                     )
                   : Column(
                       children: [
                         for (final item in paymentTotals) ...[
                           _LegendRow(
                             label: item.paymentMethodId == null
-                                ? 'No payment method'
+                                ? context.l10n.labelNoPaymentMethod
                                 : methodsById[item.paymentMethodId]?.name ??
-                                      'Unknown',
+                                      context.l10n.labelUnknownCategory,
                             icon: '💳',
                             color: scheme.primary,
                             amountCents: item.totalCents,
@@ -334,7 +350,11 @@ class _LegendRow extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    Money.format(amountCents, currency),
+                    Money.format(
+                      amountCents,
+                      currency,
+                      locale: localeNameOf(context),
+                    ),
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),

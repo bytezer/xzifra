@@ -2,6 +2,7 @@ import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import 'core/locale_settings.dart';
 import 'core/theme_settings.dart';
 import 'data/database.dart';
 import 'domain/reports.dart';
@@ -179,6 +180,12 @@ final selectedCurrencyProvider = NotifierProvider<SelectedCurrency, String>(
 final initialThemeProvider = Provider<AppThemeSettings>(
   (ref) => const AppThemeSettings(),
 );
+
+final initialLocaleProvider = Provider<AppLocale>((ref) => AppLocale.system);
+
+final localeSettingProvider = StreamProvider<AppLocale>((ref) {
+  return ref.watch(databaseProvider).watchSetting('locale').map(parseAppLocale);
+});
 
 final themePresetProvider = StreamProvider<AppThemePreset>((ref) {
   return ref

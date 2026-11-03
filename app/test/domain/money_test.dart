@@ -16,8 +16,17 @@ void main() {
 
     test('compact format shortens large amounts', () {
       expect(Money.formatCompact(1250, 'PEN'), 'S/ 13');
-      expect(Money.formatCompact(123456, 'PEN'), 'S/ 1.2k');
-      expect(Money.formatCompact(123456789, 'USD'), r'$1.2M');
+      expect(Money.formatCompact(123456, 'PEN'), 'S/ 1.23K');
+      expect(Money.formatCompact(123456789, 'USD'), r'$1.23M');
+    });
+
+    test('formats numbers for Spanish', () {
+      expect(Money.format(123456, 'PEN', locale: 'es'), 'S/ 1.234,56');
+      expect(Money.format(1250, 'USD', locale: 'es'), r'$12,50');
+      expect(
+        Money.formatCompact(123456, 'PEN', locale: 'es'),
+        'S/ 1,23\u00A0mil',
+      );
     });
 
     test('decimal returns the plain amount', () {

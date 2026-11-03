@@ -5,16 +5,6 @@ enum AppThemePreset { indigo, cyberRed }
 extension AppThemePresetInfo on AppThemePreset {
   String get storageValue => name;
 
-  String get label => switch (this) {
-    AppThemePreset.indigo => 'Indigo',
-    AppThemePreset.cyberRed => 'Cyber Red',
-  };
-
-  String get description => switch (this) {
-    AppThemePreset.indigo => 'Calm indigo accents on Material 3 surfaces.',
-    AppThemePreset.cyberRed => 'Black surfaces with neon red accents.',
-  };
-
   List<Color> get swatches => switch (this) {
     AppThemePreset.indigo => const [
       Color(0xFF4F46E5),
@@ -64,10 +54,4 @@ String themeModeStorageValue(ThemeMode mode) => switch (mode) {
   ThemeMode.light => 'light',
   ThemeMode.dark => 'dark',
   ThemeMode.system => 'system',
-};
-
-String themeModeLabel(ThemeMode mode) => switch (mode) {
-  ThemeMode.light => 'Light',
-  ThemeMode.dark => 'Dark',
-  ThemeMode.system => 'System',
 };

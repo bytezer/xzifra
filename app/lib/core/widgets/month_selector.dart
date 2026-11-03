@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/periods.dart';
 import '../../providers.dart';
+import '../l10n.dart';
 
 class MonthSelector extends ConsumerWidget {
   const MonthSelector({super.key, this.alignStart = false});
@@ -14,17 +15,19 @@ class MonthSelector extends ConsumerWidget {
     final month = ref.watch(selectedMonthProvider);
     final notifier = ref.read(selectedMonthProvider.notifier);
     final theme = Theme.of(context);
+    final l10n = context.l10n;
+    final locale = localeNameOf(context);
 
     return Row(
       children: [
         IconButton(
           onPressed: notifier.previous,
-          tooltip: 'Previous month',
+          tooltip: l10n.tooltipPreviousMonth,
           icon: const Icon(Icons.chevron_left),
         ),
         Expanded(
           child: Text(
-            Periods.monthLabel(month),
+            Periods.monthLabel(month, locale: locale),
             textAlign: alignStart ? TextAlign.start : TextAlign.center,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
@@ -33,7 +36,7 @@ class MonthSelector extends ConsumerWidget {
         ),
         IconButton(
           onPressed: notifier.canGoNext ? notifier.next : null,
-          tooltip: 'Next month',
+          tooltip: l10n.tooltipNextMonth,
           icon: const Icon(Icons.chevron_right),
         ),
       ],

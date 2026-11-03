@@ -34,24 +34,29 @@ class Periods {
     );
   }
 
-  static String monthLabel(DateTime month) =>
-      DateFormat.yMMMM('en_US').format(month);
+  static String monthLabel(DateTime month, {String locale = 'en_US'}) =>
+      DateFormat.yMMMM(locale).format(month);
 
-  static String shortMonthLabel(DateTime month) =>
-      DateFormat.MMM('en_US').format(month);
+  static String shortMonthLabel(DateTime month, {String locale = 'en_US'}) =>
+      DateFormat.MMM(locale).format(month);
 
-  static String fullDateLabel(DateTime date) =>
-      DateFormat('EEEE, MMM d, y', 'en_US').format(date);
+  static String fullDateLabel(DateTime date, {String locale = 'en_US'}) =>
+      DateFormat.yMMMMEEEEd(locale).format(date);
 
-  static String dayLabel(String isoDate) {
+  static String dayLabel(
+    String isoDate, {
+    String locale = 'en_US',
+    String today = 'Today',
+    String yesterday = 'Yesterday',
+  }) {
     final now = DateTime.now();
-    if (isoDate == dateKey(now)) return 'Today';
+    if (isoDate == dateKey(now)) return today;
     if (isoDate == dateKey(now.subtract(const Duration(days: 1)))) {
-      return 'Yesterday';
+      return yesterday;
     }
     final parsed = DateTime.tryParse(isoDate);
     if (parsed == null) return isoDate;
-    return DateFormat('EEE, MMM d', 'en_US').format(parsed);
+    return DateFormat.MMMEd(locale).format(parsed);
   }
 
   static bool isCurrentMonth(DateTime month) {

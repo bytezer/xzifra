@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/l10n.dart';
 import '../../core/widgets/currency_selector.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/month_selector.dart';
@@ -69,16 +70,16 @@ class DashboardPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             SectionCard(
-              title: 'Top categories',
+              title: context.l10n.dashboardTopCategories,
               child: top.isEmpty
                   ? EmptyState(
                       icon: Icons.donut_large_outlined,
-                      title: 'No expenses this month',
-                      message: 'Add your first expense to see the breakdown.',
+                      title: context.l10n.dashboardNoExpensesTitle,
+                      message: context.l10n.dashboardNoExpensesMessage,
                       action: FilledButton.icon(
                         onPressed: () => context.push('/add'),
                         icon: const Icon(Icons.add),
-                        label: const Text('Add expense'),
+                        label: Text(context.l10n.dashboardAddExpense),
                       ),
                     )
                   : Column(
@@ -97,18 +98,18 @@ class DashboardPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             SectionCard(
-              title: 'Recent expenses',
+              title: context.l10n.dashboardRecentExpenses,
               trailing: recent.isEmpty
                   ? null
                   : TextButton(
                       onPressed: () => context.go('/expenses'),
-                      child: const Text('View all'),
+                      child: Text(context.l10n.dashboardViewAll),
                     ),
               child: recent.isEmpty
-                  ? const EmptyState(
+                  ? EmptyState(
                       icon: Icons.receipt_long_outlined,
-                      title: 'Nothing recorded yet',
-                      message: 'Your latest expenses will show up here.',
+                      title: context.l10n.dashboardNothingRecordedTitle,
+                      message: context.l10n.dashboardNothingRecordedMessage,
                     )
                   : Column(
                       children: [
@@ -153,7 +154,7 @@ class _TotalCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Spent this month',
+                    context.l10n.dashboardSpentThisMonth,
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: scheme.onPrimaryContainer,
                     ),
@@ -164,7 +165,7 @@ class _TotalCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              Money.format(total, currency),
+              Money.format(total, currency, locale: localeNameOf(context)),
               style: theme.textTheme.displaySmall?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: scheme.onPrimaryContainer,
@@ -202,7 +203,7 @@ class _DeltaLabel extends StatelessWidget {
 
     if (previous == null) {
       return Text(
-        'Loading previous month…',
+        context.l10n.dashboardLoadingPrevious,
         style: theme.textTheme.bodySmall?.copyWith(
           color: scheme.onPrimaryContainer.withValues(alpha: 0.7),
         ),
@@ -212,7 +213,7 @@ class _DeltaLabel extends StatelessWidget {
     final ratio = TotalsMath.changeRatio(current: total, previous: previous);
     if (ratio == null) {
       return Text(
-        'No spending recorded last month',
+        context.l10n.dashboardNoSpendingLastMonth,
         style: theme.textTheme.bodySmall?.copyWith(
           color: scheme.onPrimaryContainer.withValues(alpha: 0.7),
         ),
@@ -221,7 +222,7 @@ class _DeltaLabel extends StatelessWidget {
 
     if (previous == 0 && total == 0) {
       return Text(
-        'No spending recorded yet',
+        context.l10n.dashboardNoSpendingYet,
         style: theme.textTheme.bodySmall?.copyWith(
           color: scheme.onPrimaryContainer.withValues(alpha: 0.7),
         ),
@@ -230,7 +231,7 @@ class _DeltaLabel extends StatelessWidget {
 
     if (ratio == 0) {
       return Text(
-        'Same as last month',
+        context.l10n.dashboardSameAsLastMonth,
         style: theme.textTheme.bodySmall?.copyWith(
           color: scheme.onPrimaryContainer.withValues(alpha: 0.8),
         ),
@@ -248,7 +249,9 @@ class _DeltaLabel extends StatelessWidget {
         ),
         const SizedBox(width: 6),
         Text(
-          '${increased ? '+' : '−'}$percent% vs last month',
+          increased
+              ? context.l10n.dashboardIncreased(percent)
+              : context.l10n.dashboardDecreased(percent),
           style: theme.textTheme.bodySmall?.copyWith(
             color: scheme.onPrimaryContainer,
             fontWeight: FontWeight.w600,
@@ -294,14 +297,18 @@ class _CategoryRow extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      category?.name ?? 'Unknown',
+                      category?.name ?? context.l10n.labelUnknownCategory,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodyMedium,
                     ),
                   ),
                   Text(
-                    Money.format(item.totalCents, currency),
+                    Money.format(
+                      item.totalCents,
+                      currency,
+                      locale: localeNameOf(context),
+                    ),
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -347,9 +354,13 @@ class _RecentRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final note = item.expense.note?.trim();
-    final subtitle = note == null || note.isEmpty
-        ? Periods.dayLabel(item.expense.date)
-        : '${Periods.dayLabel(item.expense.date)} · $note';
+    final day = Periods.dayLabel(
+      item.expense.date,
+      locale: localeNameOf(context),
+      today: context.l10n.today,
+      yesterday: context.l10n.yesterday,
+    );
+    final subtitle = note == null || note.isEmpty ? day : '$day · $note';
 
     return InkWell(
       borderRadius: BorderRadius.circular(12),
@@ -383,7 +394,11 @@ class _RecentRow extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Text(
-              Money.format(item.expense.amountCents, currency),
+              Money.format(
+                item.expense.amountCents,
+                currency,
+                locale: localeNameOf(context),
+              ),
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),

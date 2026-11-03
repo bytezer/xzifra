@@ -9,22 +9,24 @@ class Money {
   static String symbolFor(String currency) => currency == 'PEN' ? 'S/' : r'$';
 
   /// Formats [cents] for display, e.g. `S/ 12.50` or `$12.50`.
-  static String format(int cents, String currency) {
-    final number = NumberFormat('#,##0.00', 'en_US').format(cents / 100);
+  static String format(int cents, String currency, {String locale = 'en_US'}) {
+    final number = NumberFormat('#,##0.00', locale).format(cents / 100);
     final symbol = symbolFor(currency);
     return currency == 'PEN' ? '$symbol $number' : '$symbol$number';
   }
 
-  /// Short format for chart axes, e.g. `S/ 1.2k`.
-  static String formatCompact(int cents, String currency) {
+  /// Short format for chart axes, e.g. `S/ 1.2K`.
+  static String formatCompact(
+    int cents,
+    String currency, {
+    String locale = 'en_US',
+  }) {
     final amount = cents / 100;
     final symbol = symbolFor(currency);
     final prefix = currency == 'PEN' ? '$symbol ' : symbol;
-    if (amount.abs() >= 1000000) {
-      return '$prefix${(amount / 1000000).toStringAsFixed(1)}M';
-    }
     if (amount.abs() >= 1000) {
-      return '$prefix${(amount / 1000).toStringAsFixed(1)}k';
+      final compact = NumberFormat.compact(locale: locale).format(amount);
+      return '$prefix$compact';
     }
     return '$prefix${amount.toStringAsFixed(0)}';
   }

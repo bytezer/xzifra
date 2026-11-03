@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/l10n.dart';
 import '../../data/database.dart';
 import '../../domain/money.dart';
 import '../../domain/periods.dart';
@@ -36,12 +37,12 @@ class ExpenseFormPage extends ConsumerWidget {
         .watch(expenseByIdProvider(id))
         .when(
           data: (view) => view == null
-              ? const _LoadError(message: 'Expense not found.')
+              ? _LoadError(message: context.l10n.expenseNotFound)
               : _ExpenseFormBody(initial: view),
           loading: () =>
               const Scaffold(body: Center(child: CircularProgressIndicator())),
           error: (error, stackTrace) =>
-              const _LoadError(message: 'Could not load this expense.'),
+              _LoadError(message: context.l10n.expenseLoadError),
         );
   }
 }
@@ -117,6 +118,8 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final l10n = context.l10n;
+    final locale = localeNameOf(context);
 
     final allCategories =
         ref.watch(allCategoriesProvider).asData?.value ?? const <Category>[];
@@ -132,7 +135,9 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
         .toList();
 
     return Scaffold(
-      appBar: AppBar(title: Text(_isEditing ? 'Edit expense' : 'New expense')),
+      appBar: AppBar(
+        title: Text(_isEditing ? l10n.expenseEditTitle : l10n.expenseNewTitle),
+      ),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         behavior: HitTestBehavior.opaque,
@@ -149,7 +154,7 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
                 child: Column(
                   children: [
                     Text(
-                      'Amount',
+                      l10n.expenseAmount,
                       style: theme.textTheme.labelMedium?.copyWith(
                         color: scheme.onPrimaryContainer,
                       ),
@@ -177,7 +182,7 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
               onBackspace: () => setState(() => _amount = _amount.backspace()),
             ),
             const SizedBox(height: 20),
-            Text('Currency', style: theme.textTheme.titleSmall),
+            Text(l10n.expenseCurrency, style: theme.textTheme.titleSmall),
             const SizedBox(height: 8),
             SegmentedButton<String>(
               showSelectedIcon: false,
@@ -191,11 +196,11 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
               },
             ),
             const SizedBox(height: 20),
-            Text('Category', style: theme.textTheme.titleSmall),
+            Text(l10n.expenseCategory, style: theme.textTheme.titleSmall),
             const SizedBox(height: 8),
             if (categories.isEmpty)
               Text(
-                'No categories yet. Add one in Settings.',
+                l10n.expenseNoCategories,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: scheme.onSurfaceVariant,
                 ),
@@ -215,7 +220,7 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
                 ],
               ),
             const SizedBox(height: 20),
-            Text('Payment method', style: theme.textTheme.titleSmall),
+            Text(l10n.expensePaymentMethod, style: theme.textTheme.titleSmall),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -223,7 +228,7 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
               children: [
                 ChoiceChip(
                   selected: _paymentMethodId == null,
-                  label: const Text('None'),
+                  label: Text(l10n.labelNone),
                   onSelected: (_) => setState(() => _paymentMethodId = null),
                 ),
                 for (final item in methods)
@@ -236,7 +241,7 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
               ],
             ),
             const SizedBox(height: 20),
-            Text('Date', style: theme.textTheme.titleSmall),
+            Text(l10n.expenseDate, style: theme.textTheme.titleSmall),
             const SizedBox(height: 8),
             Card(
               child: ListTile(
@@ -244,21 +249,21 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 leading: const Icon(Icons.calendar_today_outlined),
-                title: Text(Periods.fullDateLabel(_date)),
+                title: Text(Periods.fullDateLabel(_date, locale: locale)),
                 trailing: const Icon(Icons.edit_outlined, size: 18),
                 onTap: _pickDate,
               ),
             ),
             const SizedBox(height: 20),
-            Text('Note', style: theme.textTheme.titleSmall),
+            Text(l10n.expenseNote, style: theme.textTheme.titleSmall),
             const SizedBox(height: 8),
             TextField(
               controller: _noteController,
               maxLines: 2,
               maxLength: 200,
               textCapitalization: TextCapitalization.sentences,
-              decoration: const InputDecoration(
-                hintText: 'Optional',
+              decoration: InputDecoration(
+                hintText: l10n.labelOptional,
                 counterText: '',
               ),
             ),
@@ -275,7 +280,7 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
                   width: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : Text(_isEditing ? 'Save changes' : 'Save expense'),
+              : Text(_isEditing ? l10n.expenseSaveChanges : l10n.expenseSave),
         ),
       ),
     );
@@ -288,7 +293,7 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
       initialDate: _date,
       firstDate: DateTime(2000),
       lastDate: DateTime(now.year + 1, now.month, now.day),
-      helpText: 'Expense date',
+      helpText: context.l10n.expenseDateHelp,
     );
     if (picked != null) {
       setState(() => _date = picked);
@@ -298,18 +303,18 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
   Future<void> _save() async {
     final cents = _amount.cents;
     if (cents <= 0) {
-      _showMessage('Enter an amount greater than zero.');
+      _showMessage(context.l10n.expenseAmountError);
       return;
     }
     final categoryId = _categoryId;
     if (categoryId == null) {
-      _showMessage('Choose a category.');
+      _showMessage(context.l10n.expenseCategoryError);
       return;
     }
     final categories =
         ref.read(allCategoriesProvider).asData?.value ?? const <Category>[];
     if (!categories.any((item) => item.id == categoryId)) {
-      _showMessage('Choose a category.');
+      _showMessage(context.l10n.expenseCategoryError);
       return;
     }
     final methods =
@@ -349,7 +354,7 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
     } catch (error) {
       if (!mounted) return;
       setState(() => _saving = false);
-      _showMessage('Could not save the expense. Please try again.');
+      _showMessage(context.l10n.expenseSaveError);
     }
   }
 

@@ -22,6 +22,8 @@ budgets.
   JSON backup to restore or merge.
 - **Themes** — Indigo (light/dark) and Cyber Red (black surfaces with neon red
   accents, dark only).
+- **English and Spanish** — the UI follows the device language by default and
+  can be switched in **Settings → Language**.
 - **About** — real version and build, commit and branch, repo links, diagnostics
   and open-source licenses.
 
@@ -71,6 +73,21 @@ Quality checks:
 flutter analyze
 flutter test
 ```
+
+## Localization
+
+UI strings live in `app/lib/l10n/app_en.arb` and `app/lib/l10n/app_es.arb`.
+The generated `AppLocalizations` files are committed, and `flutter gen-l10n`
+regenerates them after editing an ARB file:
+
+```bash
+cd app
+flutter gen-l10n
+```
+
+Language selection is stored in the local settings table (`system`, `en`, `es`).
+Unsupported device languages fall back to English. Dates and numbers follow the
+selected language; CSV exports keep dot decimals for spreadsheet compatibility.
 
 ## Build a release APK
 

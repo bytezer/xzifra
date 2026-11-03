@@ -1,18 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/l10n.dart';
+import '../../core/payment_types.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../data/database.dart';
 import '../../providers.dart';
-
-const Map<String, String> _typeLabels = {
-  'cash': 'Cash',
-  'yape': 'Yape',
-  'plin': 'Plin',
-  'debit': 'Debit card',
-  'credit': 'Credit card',
-  'transfer': 'Bank transfer',
-};
 
 IconData _iconFor(String type) => switch (type) {
   'cash' => Icons.payments_outlined,
@@ -37,20 +30,20 @@ class PaymentMethodsPage extends ConsumerWidget {
     final database = ref.read(databaseProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Payment methods')),
+      appBar: AppBar(title: Text(context.l10n.paymentMethodsTitle)),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openEditor(context, ref),
         icon: const Icon(Icons.add),
-        label: const Text('Add'),
+        label: Text(context.l10n.actionAdd),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
         children: [
           if (all.isEmpty)
-            const EmptyState(
+            EmptyState(
               icon: Icons.credit_card_outlined,
-              title: 'No payment methods yet',
-              message: 'Add cash, cards or wallets to track how you pay.',
+              title: context.l10n.paymentMethodsEmptyTitle,
+              message: context.l10n.paymentMethodsEmptyMessage,
             ),
           for (var index = 0; index < active.length; index++) ...[
             _PaymentMethodTile(
@@ -74,7 +67,7 @@ class PaymentMethodsPage extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
               child: Text(
-                'Archived',
+                context.l10n.labelArchived,
                 style: theme.textTheme.labelLarge?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -116,6 +109,7 @@ class PaymentMethodsPage extends ConsumerWidget {
     WidgetRef ref, {
     PaymentMethod? method,
   }) async {
+    final l10n = context.l10n;
     final database = ref.read(databaseProvider);
     final controller = TextEditingController(text: method?.name ?? '');
     var type = method?.type ?? 'cash';
@@ -127,7 +121,9 @@ class PaymentMethodsPage extends ConsumerWidget {
           builder: (context, setDialogState) {
             return AlertDialog(
               title: Text(
-                method == null ? 'New payment method' : 'Edit payment method',
+                method == null
+                    ? l10n.paymentMethodsNewTitle
+                    : l10n.paymentMethodsEditTitle,
               ),
               content: SingleChildScrollView(
                 child: Column(
@@ -138,20 +134,22 @@ class PaymentMethodsPage extends ConsumerWidget {
                       autofocus: true,
                       maxLength: 40,
                       textCapitalization: TextCapitalization.words,
-                      decoration: const InputDecoration(
-                        labelText: 'Name',
+                      decoration: InputDecoration(
+                        labelText: l10n.paymentMethodsName,
                         counterText: '',
                       ),
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       initialValue: type,
-                      decoration: const InputDecoration(labelText: 'Type'),
+                      decoration: InputDecoration(
+                        labelText: l10n.paymentMethodsType,
+                      ),
                       items: [
-                        for (final entry in _typeLabels.entries)
+                        for (final typeKey in paymentTypes)
                           DropdownMenuItem(
-                            value: entry.key,
-                            child: Text(entry.value),
+                            value: typeKey,
+                            child: Text(paymentTypeLabel(l10n, typeKey)),
                           ),
                       ],
                       onChanged: (value) {
@@ -166,7 +164,7 @@ class PaymentMethodsPage extends ConsumerWidget {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Cancel'),
+                  child: Text(l10n.actionCancel),
                 ),
                 FilledButton(
                   onPressed: () {
@@ -174,7 +172,7 @@ class PaymentMethodsPage extends ConsumerWidget {
                     if (name.isEmpty) return;
                     Navigator.of(dialogContext).pop((name: name, type: type));
                   },
-                  child: const Text('Save'),
+                  child: Text(l10n.actionSave),
                 ),
               ],
             );
@@ -206,25 +204,24 @@ class PaymentMethodsPage extends ConsumerWidget {
   ) async {
     final count = await database.countExpensesForPaymentMethod(method.id);
     if (!context.mounted) return;
+    final l10n = context.l10n;
 
     if (count > 0) {
       final archive = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Archive payment method?'),
+          title: Text(l10n.paymentMethodsArchiveDialogTitle),
           content: Text(
-            '"${method.name}" is used by $count '
-            '${count == 1 ? 'expense' : 'expenses'}. '
-            'Archiving keeps the history intact.',
+            l10n.paymentMethodsArchiveDialogMessage(method.name, count),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+              child: Text(l10n.actionCancel),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Archive'),
+              child: Text(l10n.actionArchive),
             ),
           ],
         ),
@@ -238,16 +235,16 @@ class PaymentMethodsPage extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete payment method?'),
-        content: Text('Delete "${method.name}"? This cannot be undone.'),
+        title: Text(l10n.paymentMethodsDeleteDialogTitle),
+        content: Text(l10n.paymentMethodsDeleteDialogMessage(method.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.actionCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete'),
+            child: Text(l10n.actionDelete),
           ),
         ],
       ),
@@ -281,6 +278,18 @@ class _PaymentMethodTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final typeLabel = paymentTypeLabel(l10n, method.type);
+    final englishLabel = paymentTypeEnglishLabel(method.type);
+    final nameMatchesType =
+        method.name.toLowerCase() == typeLabel.toLowerCase() ||
+        method.name.toLowerCase() == englishLabel.toLowerCase();
+    final subtitle = archived
+        ? (nameMatchesType
+              ? l10n.paymentMethodArchived
+              : '${l10n.paymentMethodArchived} · $typeLabel')
+        : (nameMatchesType ? null : typeLabel);
+
     return Card(
       child: ListTile(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -290,11 +299,7 @@ class _PaymentMethodTile extends StatelessWidget {
           child: Icon(_iconFor(method.type), size: 20),
         ),
         title: Text(method.name),
-        subtitle: Text(
-          archived
-              ? 'Archived · ${_typeLabels[method.type] ?? method.type}'
-              : _typeLabels[method.type] ?? method.type,
-        ),
+        subtitle: subtitle == null ? null : Text(subtitle),
         trailing: PopupMenuButton<String>(
           onSelected: (value) {
             switch (value) {
@@ -313,16 +318,16 @@ class _PaymentMethodTile extends StatelessWidget {
             }
           },
           itemBuilder: (context) => [
-            const PopupMenuItem(value: 'edit', child: Text('Edit')),
+            PopupMenuItem(value: 'edit', child: Text(l10n.actionEdit)),
             if (!archived && onMoveUp != null)
-              const PopupMenuItem(value: 'up', child: Text('Move up')),
+              PopupMenuItem(value: 'up', child: Text(l10n.actionMoveUp)),
             if (!archived && onMoveDown != null)
-              const PopupMenuItem(value: 'down', child: Text('Move down')),
+              PopupMenuItem(value: 'down', child: Text(l10n.actionMoveDown)),
             if (archived)
-              const PopupMenuItem(value: 'restore', child: Text('Restore'))
+              PopupMenuItem(value: 'restore', child: Text(l10n.actionRestore))
             else
-              const PopupMenuItem(value: 'archive', child: Text('Archive')),
-            const PopupMenuItem(value: 'delete', child: Text('Delete')),
+              PopupMenuItem(value: 'archive', child: Text(l10n.actionArchive)),
+            PopupMenuItem(value: 'delete', child: Text(l10n.actionDelete)),
           ],
         ),
       ),

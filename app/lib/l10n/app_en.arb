@@ -1,0 +1,286 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "Xzifra",
+
+  "navHome": "Home",
+  "navExpenses": "Expenses",
+  "navReports": "Reports",
+  "navSettings": "Settings",
+
+  "actionCancel": "Cancel",
+  "actionDelete": "Delete",
+  "actionSave": "Save",
+  "actionEdit": "Edit",
+  "actionAdd": "Add",
+  "actionClear": "Clear",
+  "actionUndo": "Undo",
+  "actionRestore": "Restore",
+  "actionMoveUp": "Move up",
+  "actionMoveDown": "Move down",
+  "actionArchive": "Archive",
+
+  "labelNone": "None",
+  "labelOptional": "Optional",
+  "labelUnknownCategory": "Unknown category",
+  "labelNoPaymentMethod": "No payment method",
+  "labelArchived": "Archived",
+  "categoryArchived": "Archived",
+  "paymentMethodArchived": "Archived",
+
+  "today": "Today",
+  "yesterday": "Yesterday",
+
+  "tooltipPreviousMonth": "Previous month",
+  "tooltipNextMonth": "Next month",
+  "tooltipAddExpense": "Add expense",
+
+  "dashboardSpentThisMonth": "Spent this month",
+  "dashboardTopCategories": "Top categories",
+  "dashboardRecentExpenses": "Recent expenses",
+  "dashboardViewAll": "View all",
+  "dashboardNoExpensesTitle": "No expenses this month",
+  "dashboardNoExpensesMessage": "Add your first expense to see the breakdown.",
+  "dashboardAddExpense": "Add expense",
+  "dashboardNothingRecordedTitle": "Nothing recorded yet",
+  "dashboardNothingRecordedMessage": "Your latest expenses will show up here.",
+  "dashboardLoadingPrevious": "Loading previous month…",
+  "dashboardNoSpendingLastMonth": "No spending recorded last month",
+  "dashboardNoSpendingYet": "No spending recorded yet",
+  "dashboardSameAsLastMonth": "Same as last month",
+  "dashboardIncreased": "+{percent}% vs last month",
+  "@dashboardIncreased": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardDecreased": "−{percent}% vs last month",
+  "@dashboardDecreased": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+
+  "expensesTitle": "Expenses",
+  "expensesFilterCategory": "Category",
+  "expensesFilterPayment": "Payment",
+  "expensesNoMatchesTitle": "No matches",
+  "expensesNoMatchesMessage": "Try a different category or payment method.",
+  "expensesEmptyTitle": "No expenses this month",
+  "expensesEmptyMessage": "Tap the + button to record one.",
+  "expensesClearFilters": "Clear filters",
+  "expensesFilterByCategory": "Filter by category",
+  "expensesFilterByPayment": "Filter by payment method",
+  "expensesAllCategories": "All categories",
+  "expensesAllPaymentMethods": "All payment methods",
+  "expensesDeleteTitle": "Delete expense?",
+  "expensesDeleted": "Deleted {category} expense",
+  "@expensesDeleted": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+
+  "expenseNewTitle": "New expense",
+  "expenseEditTitle": "Edit expense",
+  "expenseAmount": "Amount",
+  "expenseCurrency": "Currency",
+  "expenseCategory": "Category",
+  "expensePaymentMethod": "Payment method",
+  "expenseDate": "Date",
+  "expenseNote": "Note",
+  "expenseSave": "Save expense",
+  "expenseSaveChanges": "Save changes",
+  "expenseAmountError": "Enter an amount greater than zero.",
+  "expenseCategoryError": "Choose a category.",
+  "expenseSaveError": "Could not save the expense. Please try again.",
+  "expenseNoCategories": "No categories yet. Add one in Settings.",
+  "expenseNotFound": "Expense not found.",
+  "expenseLoadError": "Could not load this expense.",
+  "expenseDateHelp": "Expense date",
+
+  "reportsTitle": "Reports",
+  "reportsByCategory": "By category",
+  "reportsNoDataTitle": "No data for this month",
+  "reportsNoDataMessage": "Record an expense to see the breakdown.",
+  "reportsTotal": "Total",
+  "reportsLast12Months": "Last 12 months",
+  "reportsByPaymentMethod": "By payment method",
+  "reportsNoPaymentDataMessage": "Payment methods will show up here.",
+
+  "settingsTitle": "Settings",
+  "settingsAppearance": "Appearance",
+  "settingsTheme": "Theme",
+  "settingsThemeMode": "Theme mode",
+  "settingsThemeModeFixed": "Dark (fixed by Cyber Red)",
+  "settingsThemeSystem": "System",
+  "settingsThemeLight": "Light",
+  "settingsThemeDark": "Dark",
+  "settingsThemeSystemDescription": "Follow the device setting",
+  "settingsThemeLightDescription": "Always use the light theme",
+  "settingsThemeDarkDescription": "Always use the dark theme",
+  "settingsPreferences": "Preferences",
+  "settingsLanguage": "Language",
+  "settingsLanguageSystem": "System default",
+  "settingsDefaultCurrency": "Default currency",
+  "settingsCurrencyPEN": "Soles (PEN)",
+  "settingsCurrencyUSD": "Dollars (USD)",
+  "settingsManage": "Manage",
+  "settingsCategories": "Categories",
+  "settingsCategoriesSubtitle": "Create, edit, reorder or archive",
+  "settingsPaymentMethods": "Payment methods",
+  "settingsPaymentMethodsSubtitle": "Cash, cards, Yape, Plin and more",
+  "settingsBackup": "Backup",
+  "settingsExportJson": "Export JSON backup",
+  "settingsExportJsonSubtitle": "Full backup you can import later",
+  "settingsExportCsv": "Export CSV",
+  "settingsExportCsvSubtitle": "Open your expenses in a spreadsheet",
+  "settingsImportJson": "Import JSON backup",
+  "settingsImportJsonSubtitle": "Merge a backup into this device",
+  "settingsAbout": "About Xzifra",
+  "settingsAboutSubtitle": "Version, source code and licenses",
+  "settingsExportError": "Could not export the backup.",
+  "settingsCsvError": "Could not export the CSV.",
+  "settingsImportProcessed": "Processed {total} records ({expenses} expenses).",
+  "@settingsImportProcessed": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "expenses": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsImportError": "Could not import this backup.",
+  "settingsImportInvalid": "This file is not an Xzifra backup.",
+
+  "themeIndigo": "Indigo",
+  "themeIndigoDescription": "Calm indigo accents on Material 3 surfaces.",
+  "themeCyberRed": "Cyber Red",
+  "themeCyberRedDescription": "Black surfaces with neon red accents.",
+
+  "categoriesTitle": "Categories",
+  "categoriesNewTitle": "New category",
+  "categoriesEditTitle": "Edit category",
+  "categoriesName": "Name",
+  "categoriesIcon": "Icon",
+  "categoriesColor": "Color",
+  "categoriesArchiveDialogTitle": "Archive category?",
+  "categoriesArchiveDialogMessage": "{count, plural, =1{\"{name}\" is used by 1 expense. Archiving keeps the history intact.} other{\"{name}\" is used by {count} expenses. Archiving keeps the history intact.}}",
+  "@categoriesArchiveDialogMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "categoriesDeleteDialogTitle": "Delete category?",
+  "categoriesDeleteDialogMessage": "Delete \"{name}\"? This cannot be undone.",
+  "@categoriesDeleteDialogMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "categoriesEmptyTitle": "No categories yet",
+  "categoriesEmptyMessage": "Add your first category to start recording expenses.",
+
+  "paymentMethodsTitle": "Payment methods",
+  "paymentMethodsNewTitle": "New payment method",
+  "paymentMethodsEditTitle": "Edit payment method",
+  "paymentMethodsName": "Name",
+  "paymentMethodsType": "Type",
+  "paymentMethodsArchiveDialogTitle": "Archive payment method?",
+  "paymentMethodsArchiveDialogMessage": "{count, plural, =1{\"{name}\" is used by 1 expense. Archiving keeps the history intact.} other{\"{name}\" is used by {count} expenses. Archiving keeps the history intact.}}",
+  "@paymentMethodsArchiveDialogMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "paymentMethodsDeleteDialogTitle": "Delete payment method?",
+  "paymentMethodsDeleteDialogMessage": "Delete \"{name}\"? This cannot be undone.",
+  "@paymentMethodsDeleteDialogMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentMethodsEmptyTitle": "No payment methods yet",
+  "paymentMethodsEmptyMessage": "Add cash, cards or wallets to track how you pay.",
+  "paymentTypeCash": "Cash",
+  "paymentTypeYape": "Yape",
+  "paymentTypePlin": "Plin",
+  "paymentTypeDebit": "Debit card",
+  "paymentTypeCredit": "Credit card",
+  "paymentTypeTransfer": "Bank transfer",
+
+  "aboutTitle": "About",
+  "aboutTagline": "A local-first expense tracker for Android.",
+  "aboutDataPrivacyTitle": "Data & privacy",
+  "aboutDataPrivacy": "All expenses, categories and settings live in a SQLite database on this device. Xzifra has no accounts, no analytics and no network access. Export a JSON backup before uninstalling the app.",
+  "aboutProject": "Project",
+  "aboutSourceCode": "Source code",
+  "aboutSourceCodeSubtitle": "github.com/bytezer/xzifra",
+  "aboutReleases": "Releases & updates",
+  "aboutReleasesSubtitle": "Download the latest beta",
+  "aboutReportIssue": "Report an issue",
+  "aboutReportIssueSubtitle": "Open a GitHub issue",
+  "aboutShareApp": "Share app",
+  "aboutShareAppSubtitle": "Send the release link",
+  "aboutMitLicense": "MIT License",
+  "aboutMitLicenseSubtitle": "View the license on GitHub",
+  "aboutDiagnostics": "Diagnostics",
+  "aboutCopyDebugInfo": "Copy debug info",
+  "aboutCopyDebugInfoSubtitle": "Version, build, commit and settings",
+  "aboutLicenses": "Open source licenses",
+  "aboutLicensesSubtitle": "Flutter, packages and the Lucide icon",
+  "aboutBuild": "Build",
+  "aboutVersion": "Version",
+  "aboutCommit": "Commit",
+  "aboutBuilt": "Built",
+  "aboutTheme": "Theme",
+  "aboutCurrency": "Currency",
+  "aboutLanguage": "Language",
+  "aboutMadeBy": "Made by xzero",
+  "aboutIconCredit": "Icon based on Lucide x (ISC/MIT)",
+  "aboutDebugCopied": "Debug info copied.",
+  "aboutLinkError": "Could not open the link.",
+  "aboutLoadError": "Could not read app information.",
+  "aboutVersionValue": "{version} ({build})",
+  "@aboutVersionValue": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "build": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutShareText": "Xzifra — a local-first expense tracker for Android.\n{url}",
+  "@aboutShareText": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutLegalese": "MIT License · Made by xzero"
+}

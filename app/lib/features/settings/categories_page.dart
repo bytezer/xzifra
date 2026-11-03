@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/l10n.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../data/database.dart';
 import '../../providers.dart';
@@ -61,20 +62,20 @@ class CategoriesPage extends ConsumerWidget {
     final database = ref.read(databaseProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Categories')),
+      appBar: AppBar(title: Text(context.l10n.categoriesTitle)),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openEditor(context, ref),
         icon: const Icon(Icons.add),
-        label: const Text('Add'),
+        label: Text(context.l10n.actionAdd),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
         children: [
           if (all.isEmpty)
-            const EmptyState(
+            EmptyState(
               icon: Icons.category_outlined,
-              title: 'No categories yet',
-              message: 'Add your first category to start recording expenses.',
+              title: context.l10n.categoriesEmptyTitle,
+              message: context.l10n.categoriesEmptyMessage,
             ),
           for (var index = 0; index < active.length; index++) ...[
             _CategoryTile(
@@ -98,7 +99,7 @@ class CategoriesPage extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
               child: Text(
-                'Archived',
+                context.l10n.labelArchived,
                 style: theme.textTheme.labelLarge?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -140,6 +141,7 @@ class CategoriesPage extends ConsumerWidget {
     WidgetRef ref, {
     Category? category,
   }) async {
+    final l10n = context.l10n;
     final database = ref.read(databaseProvider);
     final controller = TextEditingController(text: category?.name ?? '');
     var icon = category?.icon ?? _emojis.first;
@@ -153,7 +155,11 @@ class CategoriesPage extends ConsumerWidget {
           builder: (context, setDialogState) {
             final theme = Theme.of(context);
             return AlertDialog(
-              title: Text(category == null ? 'New category' : 'Edit category'),
+              title: Text(
+                category == null
+                    ? l10n.categoriesNewTitle
+                    : l10n.categoriesEditTitle,
+              ),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -164,13 +170,16 @@ class CategoriesPage extends ConsumerWidget {
                       autofocus: true,
                       maxLength: 40,
                       textCapitalization: TextCapitalization.words,
-                      decoration: const InputDecoration(
-                        labelText: 'Name',
+                      decoration: InputDecoration(
+                        labelText: l10n.categoriesName,
                         counterText: '',
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text('Icon', style: theme.textTheme.labelLarge),
+                    Text(
+                      l10n.categoriesIcon,
+                      style: theme.textTheme.labelLarge,
+                    ),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 4,
@@ -197,7 +206,10 @@ class CategoriesPage extends ConsumerWidget {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    Text('Color', style: theme.textTheme.labelLarge),
+                    Text(
+                      l10n.categoriesColor,
+                      style: theme.textTheme.labelLarge,
+                    ),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
@@ -230,7 +242,7 @@ class CategoriesPage extends ConsumerWidget {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Cancel'),
+                  child: Text(l10n.actionCancel),
                 ),
                 FilledButton(
                   onPressed: () {
@@ -238,7 +250,7 @@ class CategoriesPage extends ConsumerWidget {
                     if (value.isEmpty) return;
                     Navigator.of(dialogContext).pop(value);
                   },
-                  child: const Text('Save'),
+                  child: Text(l10n.actionSave),
                 ),
               ],
             );
@@ -271,25 +283,24 @@ class CategoriesPage extends ConsumerWidget {
   ) async {
     final count = await database.countExpensesForCategory(category.id);
     if (!context.mounted) return;
+    final l10n = context.l10n;
 
     if (count > 0) {
       final archive = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Archive category?'),
+          title: Text(l10n.categoriesArchiveDialogTitle),
           content: Text(
-            '"${category.name}" is used by $count '
-            '${count == 1 ? 'expense' : 'expenses'}. '
-            'Archiving keeps the history intact.',
+            l10n.categoriesArchiveDialogMessage(category.name, count),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+              child: Text(l10n.actionCancel),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Archive'),
+              child: Text(l10n.actionArchive),
             ),
           ],
         ),
@@ -303,16 +314,16 @@ class CategoriesPage extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete category?'),
-        content: Text('Delete "${category.name}"? This cannot be undone.'),
+        title: Text(l10n.categoriesDeleteDialogTitle),
+        content: Text(l10n.categoriesDeleteDialogMessage(category.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.actionCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete'),
+            child: Text(l10n.actionDelete),
           ),
         ],
       ),
@@ -346,6 +357,7 @@ class _CategoryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Card(
       child: ListTile(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -354,7 +366,7 @@ class _CategoryTile extends StatelessWidget {
           child: Text(category.icon),
         ),
         title: Text(category.name),
-        subtitle: archived ? const Text('Archived') : null,
+        subtitle: archived ? Text(l10n.categoryArchived) : null,
         trailing: PopupMenuButton<String>(
           onSelected: (value) {
             switch (value) {
@@ -373,16 +385,16 @@ class _CategoryTile extends StatelessWidget {
             }
           },
           itemBuilder: (context) => [
-            const PopupMenuItem(value: 'edit', child: Text('Edit')),
+            PopupMenuItem(value: 'edit', child: Text(l10n.actionEdit)),
             if (!archived && onMoveUp != null)
-              const PopupMenuItem(value: 'up', child: Text('Move up')),
+              PopupMenuItem(value: 'up', child: Text(l10n.actionMoveUp)),
             if (!archived && onMoveDown != null)
-              const PopupMenuItem(value: 'down', child: Text('Move down')),
+              PopupMenuItem(value: 'down', child: Text(l10n.actionMoveDown)),
             if (archived)
-              const PopupMenuItem(value: 'restore', child: Text('Restore'))
+              PopupMenuItem(value: 'restore', child: Text(l10n.actionRestore))
             else
-              const PopupMenuItem(value: 'archive', child: Text('Archive')),
-            const PopupMenuItem(value: 'delete', child: Text('Delete')),
+              PopupMenuItem(value: 'archive', child: Text(l10n.actionArchive)),
+            PopupMenuItem(value: 'delete', child: Text(l10n.actionDelete)),
           ],
         ),
       ),
