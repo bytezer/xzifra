@@ -342,4 +342,19 @@ void main() {
       throwsA(isA<FormatException>()),
     );
   });
+
+  test('imports a v1 backup without payment icons', () async {
+    await database.importJson({
+      'app': 'xzifra',
+      'schemaVersion': 1,
+      'paymentMethods': [
+        {'id': 'pm-old', 'name': 'Old wallet', 'type': 'cash', 'sortOrder': 9},
+      ],
+    });
+
+    final imported = (await database.select(database.paymentMethods).get())
+        .firstWhere((item) => item.id == 'pm-old');
+    expect(imported.type, 'cash');
+    expect(imported.icon, '💳');
+  });
 }
