@@ -29,6 +29,11 @@ void main() {
     return rows.firstWhere((row) => row.name == name);
   }
 
+  Future<Template> templateNamed(String name) async {
+    final rows = await database.select(database.templates).get();
+    return rows.firstWhere((row) => row.name == name);
+  }
+
   test('seeds default categories, payment methods and settings', () async {
     expect((await database.select(database.categories).get()).length, 9);
     final methods = await database.select(database.paymentMethods).get();
@@ -81,6 +86,122 @@ void main() {
     expect(methods.firstWhere((item) => item.name == 'Cash').icon, '💵');
     expect(methods.firstWhere((item) => item.name == 'Yape').icon, '📱');
     expect(methods.firstWhere((item) => item.name == 'Debit card').icon, '💳');
+  });
+
+  test('migrates v1 to v3 with icon backfill and templates', () async {
+    final raw = sqlite.sqlite3.openInMemory();
+    raw.execute('''
+      CREATE TABLE categories (
+        id TEXT NOT NULL PRIMARY KEY,
+        name TEXT NOT NULL,
+        icon TEXT NOT NULL DEFAULT '📦',
+        color INTEGER NOT NULL,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        archived_at INTEGER NULL
+      );
+    ''');
+    raw.execute('''
+      CREATE TABLE payment_methods (
+        id TEXT NOT NULL PRIMARY KEY,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        archived_at INTEGER NULL
+      );
+    ''');
+    raw.execute('''
+      CREATE TABLE settings_entries (
+        key TEXT NOT NULL PRIMARY KEY,
+        value TEXT NOT NULL
+      );
+    ''');
+    raw.execute(
+      "INSERT INTO categories (id, name, icon, color, sort_order) "
+      "VALUES ('food-id', 'Food', '🍔', 0, 0)",
+    );
+    raw.execute(
+      "INSERT INTO payment_methods (id, name, type, sort_order) "
+      "VALUES ('cash-id', 'Cash', 'cash', 0)",
+    );
+    raw.execute('PRAGMA user_version = 1;');
+
+    final migrated = AppDatabase(NativeDatabase.opened(raw));
+    addTearDown(migrated.close);
+
+    expect(await migrated.select(migrated.templates).get(), isEmpty);
+    final cash = (await migrated.select(migrated.paymentMethods).get())
+        .firstWhere((item) => item.id == 'cash-id');
+    expect(cash.icon, '💵');
+
+    await migrated.addTemplate(
+      name: 'Coffee',
+      amountCents: 550,
+      currency: 'PEN',
+      categoryId: 'food-id',
+      paymentMethodId: 'cash-id',
+    );
+    final templates = await migrated.select(migrated.templates).get();
+    expect(templates.single.name, 'Coffee');
+    expect(templates.single.amountCents, 550);
+  });
+
+  test('migrates v2 to v3 by adding the templates table', () async {
+    final raw = sqlite.sqlite3.openInMemory();
+    raw.execute('''
+      CREATE TABLE categories (
+        id TEXT NOT NULL PRIMARY KEY,
+        name TEXT NOT NULL,
+        icon TEXT NOT NULL DEFAULT '📦',
+        color INTEGER NOT NULL,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        archived_at INTEGER NULL
+      );
+    ''');
+    raw.execute('''
+      CREATE TABLE payment_methods (
+        id TEXT NOT NULL PRIMARY KEY,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        icon TEXT NOT NULL DEFAULT '💳',
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        archived_at INTEGER NULL
+      );
+    ''');
+    raw.execute('''
+      CREATE TABLE settings_entries (
+        key TEXT NOT NULL PRIMARY KEY,
+        value TEXT NOT NULL
+      );
+    ''');
+    raw.execute(
+      "INSERT INTO categories (id, name, icon, color, sort_order) "
+      "VALUES ('food-id', 'Food', '🍔', 0, 0)",
+    );
+    raw.execute(
+      "INSERT INTO payment_methods (id, name, type, icon, sort_order) "
+      "VALUES ('card-id', 'Card', 'custom', '💳', 0)",
+    );
+    raw.execute('PRAGMA user_version = 2;');
+
+    final migrated = AppDatabase(NativeDatabase.opened(raw));
+    addTearDown(migrated.close);
+
+    expect(await migrated.select(migrated.templates).get(), isEmpty);
+    final card = (await migrated.select(migrated.paymentMethods).get())
+        .firstWhere((item) => item.id == 'card-id');
+    expect(card.icon, '💳');
+
+    await migrated.addTemplate(
+      name: 'Groceries',
+      amountCents: 3500,
+      currency: 'PEN',
+      categoryId: 'food-id',
+      paymentMethodId: 'card-id',
+      note: 'Weekly',
+    );
+    final templates = await migrated.select(migrated.templates).get();
+    expect(templates.single.name, 'Groceries');
+    expect(templates.single.note, 'Weekly');
   });
 
   test('aggregates totals by category, month and payment method', () async {
@@ -294,6 +415,91 @@ void main() {
     expect(after.map((item) => item.id).toList(), reversed);
   });
 
+  test('creates, updates, reorders, archives and deletes templates', () async {
+    final food = await categoryNamed('Food');
+    final cash = await methodNamed('Cash');
+
+    await database.addTemplate(
+      name: 'Coffee',
+      amountCents: 550,
+      currency: 'PEN',
+      categoryId: food.id,
+      paymentMethodId: cash.id,
+      note: 'Morning',
+    );
+    await database.addTemplate(
+      name: 'Bus',
+      amountCents: 200,
+      currency: 'PEN',
+      categoryId: food.id,
+    );
+
+    var active = await database.watchTemplates().first;
+    expect(active.map((item) => item.name).toList(), ['Coffee', 'Bus']);
+    expect(active.first.note, 'Morning');
+    expect(await database.countTemplatesForCategory(food.id), 2);
+    expect(await database.countTemplatesForPaymentMethod(cash.id), 1);
+
+    await database.reorderTemplates([active[1].id, active[0].id]);
+    active = await database.watchTemplates().first;
+    expect(active.map((item) => item.name).toList(), ['Bus', 'Coffee']);
+
+    final coffee = await templateNamed('Coffee');
+    await database.updateTemplate(
+      coffee.id,
+      name: 'Flat white',
+      amountCents: 650,
+      currency: 'USD',
+      categoryId: food.id,
+      paymentMethodId: cash.id,
+      note: 'Large',
+    );
+    final updated = await templateNamed('Flat white');
+    expect(updated.amountCents, 650);
+    expect(updated.currency, 'USD');
+    expect(updated.note, 'Large');
+
+    await database.setTemplateArchived(updated.id, archived: true);
+    expect((await database.watchTemplates().first).length, 1);
+    final all = await database.watchTemplates(includeArchived: true).first;
+    expect(all.length, 2);
+    expect(
+      all.firstWhere((item) => item.id == updated.id).archivedAt,
+      isNotNull,
+    );
+
+    await database.setTemplateArchived(updated.id, archived: false);
+    expect((await database.watchTemplates().first).length, 2);
+
+    await database.deleteTemplate(updated.id);
+    expect((await database.watchTemplates().first).length, 1);
+    expect(await database.countTemplatesForCategory(food.id), 1);
+  });
+
+  test(
+    'a category or payment method used by a template cannot be deleted',
+    () async {
+      final food = await categoryNamed('Food');
+      final cash = await methodNamed('Cash');
+      await database.addTemplate(
+        name: 'Coffee',
+        amountCents: 550,
+        currency: 'PEN',
+        categoryId: food.id,
+        paymentMethodId: cash.id,
+      );
+
+      expect(
+        () => database.deleteCategory(food.id),
+        throwsA(isA<StateError>()),
+      );
+      expect(
+        () => database.deletePaymentMethod(cash.id),
+        throwsA(isA<StateError>()),
+      );
+    },
+  );
+
   test('export and import round-trip', () async {
     final food = await categoryNamed('Food');
     final cash = await methodNamed('Cash');
@@ -305,15 +511,29 @@ void main() {
       paymentMethodId: cash.id,
       note: 'Lunch',
     );
+    await database.addTemplate(
+      name: 'Lunch template',
+      amountCents: 1250,
+      currency: 'PEN',
+      categoryId: food.id,
+      paymentMethodId: cash.id,
+      note: 'Lunch',
+    );
 
     final backup = await database.exportJson();
     expect(backup['app'], 'xzifra');
+    expect((backup['templates'] as List).length, 1);
 
     final restored = AppDatabase(NativeDatabase.memory());
     addTearDown(restored.close);
 
     final summary = await restored.importJson(backup);
     expect(summary.expenses, 1);
+    expect(summary.templates, 1);
+    expect(
+      summary.total,
+      summary.categories + summary.paymentMethods + summary.expenses + 1,
+    );
 
     final total = await restored
         .watchMonthTotal(
@@ -334,6 +554,71 @@ void main() {
     expect(items.single.expense.note, 'Lunch');
     expect(items.single.category.name, 'Food');
     expect(items.single.paymentMethod?.icon, '💵');
+
+    final templates = await restored.select(restored.templates).get();
+    expect(templates.single.name, 'Lunch template');
+    expect(templates.single.amountCents, 1250);
+    expect(templates.single.paymentMethodId, cash.id);
+    expect(templates.single.note, 'Lunch');
+  });
+
+  test('imports an old backup without templates', () async {
+    final backup = await database.exportJson();
+    backup.remove('templates');
+    backup['expenses'] = const [];
+
+    final restored = AppDatabase(NativeDatabase.memory());
+    addTearDown(restored.close);
+
+    final summary = await restored.importJson(backup);
+    expect(summary.templates, 0);
+    expect(await restored.select(restored.templates).get(), isEmpty);
+  });
+
+  test('skips imported templates that reference missing rows', () async {
+    final food = await categoryNamed('Food');
+    final cash = await methodNamed('Cash');
+    final backup = await database.exportJson();
+    backup['templates'] = [
+      {
+        'id': 'template-valid',
+        'name': 'Coffee',
+        'amountCents': 550,
+        'currency': 'PEN',
+        'categoryId': food.id,
+        'paymentMethodId': cash.id,
+      },
+      {
+        'id': 'template-bad-category',
+        'name': 'Broken',
+        'amountCents': 550,
+        'currency': 'PEN',
+        'categoryId': 'missing-category',
+      },
+      {
+        'id': 'template-bad-method',
+        'name': 'Broken method',
+        'amountCents': 550,
+        'currency': 'PEN',
+        'categoryId': food.id,
+        'paymentMethodId': 'missing-method',
+      },
+      {
+        'id': 'template-bad-currency',
+        'name': 'Euros',
+        'amountCents': 550,
+        'currency': 'EUR',
+        'categoryId': food.id,
+      },
+    ];
+
+    final restored = AppDatabase(NativeDatabase.memory());
+    addTearDown(restored.close);
+
+    final summary = await restored.importJson(backup);
+    expect(summary.templates, 1);
+    final templates = await restored.select(restored.templates).get();
+    expect(templates.single.name, 'Coffee');
   });
 
   test('import rejects files that are not Xzifra backups', () async {

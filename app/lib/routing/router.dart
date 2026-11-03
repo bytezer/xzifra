@@ -10,6 +10,7 @@ import '../features/settings/about_page.dart';
 import '../features/settings/categories_page.dart';
 import '../features/settings/payment_methods_page.dart';
 import '../features/settings/settings_page.dart';
+import '../features/templates/templates_page.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -58,6 +59,10 @@ final GoRouter appRouter = GoRouter(
                 GoRoute(
                   path: 'payment-methods',
                   builder: (context, state) => const PaymentMethodsPage(),
+                ),
+                GoRoute(
+                  path: 'templates',
+                  builder: (context, state) => const TemplatesPage(),
                 ),
                 GoRoute(
                   path: 'about',

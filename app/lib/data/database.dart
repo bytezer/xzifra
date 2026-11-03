@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:uuid/uuid.dart';
 
+import '../domain/money.dart';
 import '../domain/reports.dart';
 
 part 'database.g.dart';
@@ -58,6 +59,26 @@ class PaymentMethods extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+class Templates extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text().withLength(min: 1, max: 60)();
+  IntColumn get amountCents => integer()();
+  TextColumn get currency => text().withLength(min: 3, max: 3)();
+  TextColumn get categoryId => text().references(Categories, #id)();
+  TextColumn get paymentMethodId =>
+      text().nullable().references(PaymentMethods, #id)();
+  TextColumn get note => text().nullable()();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  DateTimeColumn get archivedAt => dateTime().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  @override
+  List<String> get customConstraints => const ['CHECK (amount_cents > 0)'];
+}
+
 class SettingsEntries extends Table {
   TextColumn get key => text()();
   TextColumn get value => text()();
@@ -83,23 +104,27 @@ class ImportSummary {
     required this.categories,
     required this.paymentMethods,
     required this.expenses,
+    required this.templates,
   });
 
   final int categories;
   final int paymentMethods;
   final int expenses;
+  final int templates;
 
-  int get total => categories + paymentMethods + expenses;
+  int get total => categories + paymentMethods + expenses + templates;
 }
 
-@DriftDatabase(tables: [Categories, PaymentMethods, Expenses, SettingsEntries])
+@DriftDatabase(
+  tables: [Categories, PaymentMethods, Expenses, Templates, SettingsEntries],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   static const _uuid = Uuid();
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -111,6 +136,9 @@ class AppDatabase extends _$AppDatabase {
       if (from < 2) {
         await m.addColumn(paymentMethods, paymentMethods.icon);
         await _backfillPaymentMethodIcons();
+      }
+      if (from < 3) {
+        await m.createTable(templates);
       }
     },
     beforeOpen: (details) async {
@@ -334,6 +362,18 @@ class AppDatabase extends _$AppDatabase {
     return query.watch();
   }
 
+  Stream<List<Template>> watchTemplates({bool includeArchived = false}) {
+    final query = select(templates)
+      ..orderBy([
+        (t) => OrderingTerm.asc(t.sortOrder),
+        (t) => OrderingTerm.asc(t.name),
+      ]);
+    if (!includeArchived) {
+      query.where((t) => t.archivedAt.isNull());
+    }
+    return query.watch();
+  }
+
   Stream<String?> watchSetting(String key) {
     return (select(settingsEntries)..where((t) => t.key.equals(key)))
         .watchSingleOrNull()
@@ -478,10 +518,28 @@ class AppDatabase extends _$AppDatabase {
     return row.read(count) ?? 0;
   }
 
+  Future<int> countTemplatesForCategory(String id) async {
+    final count = templates.id.count();
+    final row =
+        await (selectOnly(templates)
+              ..addColumns([count])
+              ..where(templates.categoryId.equals(id)))
+            .getSingle();
+    return row.read(count) ?? 0;
+  }
+
   Future<void> deleteCategory(String id) async {
-    final count = await countExpensesForCategory(id);
-    if (count > 0) {
-      throw StateError('Category has $count expenses; archive it instead.');
+    final expenseCount = await countExpensesForCategory(id);
+    if (expenseCount > 0) {
+      throw StateError(
+        'Category has $expenseCount expenses; archive it instead.',
+      );
+    }
+    final templateCount = await countTemplatesForCategory(id);
+    if (templateCount > 0) {
+      throw StateError(
+        'Category has $templateCount templates; archive it instead.',
+      );
     }
     await (delete(categories)..where((t) => t.id.equals(id))).go();
   }
@@ -557,10 +615,28 @@ class AppDatabase extends _$AppDatabase {
     return row.read(count) ?? 0;
   }
 
+  Future<int> countTemplatesForPaymentMethod(String id) async {
+    final count = templates.id.count();
+    final row =
+        await (selectOnly(templates)
+              ..addColumns([count])
+              ..where(templates.paymentMethodId.equals(id)))
+            .getSingle();
+    return row.read(count) ?? 0;
+  }
+
   Future<void> deletePaymentMethod(String id) async {
-    final count = await countExpensesForPaymentMethod(id);
-    if (count > 0) {
-      throw StateError('Payment method has $count expenses; archive it.');
+    final expenseCount = await countExpensesForPaymentMethod(id);
+    if (expenseCount > 0) {
+      throw StateError(
+        'Payment method has $expenseCount expenses; archive it.',
+      );
+    }
+    final templateCount = await countTemplatesForPaymentMethod(id);
+    if (templateCount > 0) {
+      throw StateError(
+        'Payment method has $templateCount templates; archive it.',
+      );
     }
     await (delete(paymentMethods)..where((t) => t.id.equals(id))).go();
   }
@@ -586,6 +662,85 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // ---------------------------------------------------------------------------
+  // Template mutations
+  // ---------------------------------------------------------------------------
+
+  Future<void> addTemplate({
+    required String name,
+    required int amountCents,
+    required String currency,
+    required String categoryId,
+    String? paymentMethodId,
+    String? note,
+  }) async {
+    final order = await _nextTemplateOrder();
+    await into(templates).insert(
+      TemplatesCompanion.insert(
+        id: _uuid.v4(),
+        name: name,
+        amountCents: amountCents,
+        currency: currency,
+        categoryId: categoryId,
+        paymentMethodId: Value(paymentMethodId),
+        note: Value(note),
+        sortOrder: Value(order),
+        createdAt: DateTime.now(),
+      ),
+    );
+  }
+
+  Future<void> updateTemplate(
+    String id, {
+    required String name,
+    required int amountCents,
+    required String currency,
+    required String categoryId,
+    String? paymentMethodId,
+    String? note,
+  }) async {
+    await (update(templates)..where((t) => t.id.equals(id))).write(
+      TemplatesCompanion(
+        name: Value(name),
+        amountCents: Value(amountCents),
+        currency: Value(currency),
+        categoryId: Value(categoryId),
+        paymentMethodId: Value(paymentMethodId),
+        note: Value(note),
+      ),
+    );
+  }
+
+  Future<void> setTemplateArchived(String id, {required bool archived}) async {
+    await (update(templates)..where((t) => t.id.equals(id))).write(
+      TemplatesCompanion(archivedAt: Value(archived ? DateTime.now() : null)),
+    );
+  }
+
+  Future<void> deleteTemplate(String id) async {
+    await (delete(templates)..where((t) => t.id.equals(id))).go();
+  }
+
+  Future<void> reorderTemplates(List<String> orderedIds) async {
+    await batch((b) {
+      for (var i = 0; i < orderedIds.length; i++) {
+        b.update(
+          templates,
+          TemplatesCompanion(sortOrder: Value(i)),
+          where: (t) => t.id.equals(orderedIds[i]),
+        );
+      }
+    });
+  }
+
+  Future<int> _nextTemplateOrder() async {
+    final maxOrder = templates.sortOrder.max();
+    final row = await (selectOnly(
+      templates,
+    )..addColumns([maxOrder])).getSingle();
+    return (row.read(maxOrder) ?? -1) + 1;
+  }
+
+  // ---------------------------------------------------------------------------
   // Settings
   // ---------------------------------------------------------------------------
 
@@ -603,6 +758,7 @@ class AppDatabase extends _$AppDatabase {
     final categoryRows = await select(categories).get();
     final methodRows = await select(paymentMethods).get();
     final expenseRows = await select(expenses).get();
+    final templateRows = await select(templates).get();
     final settingRows = await select(settingsEntries).get();
 
     return {
@@ -648,6 +804,21 @@ class AppDatabase extends _$AppDatabase {
       'settings': [
         for (final row in settingRows) {'key': row.key, 'value': row.value},
       ],
+      'templates': [
+        for (final row in templateRows)
+          {
+            'id': row.id,
+            'name': row.name,
+            'amountCents': row.amountCents,
+            'currency': row.currency,
+            'categoryId': row.categoryId,
+            'paymentMethodId': row.paymentMethodId,
+            'note': row.note,
+            'sortOrder': row.sortOrder,
+            'archivedAt': row.archivedAt?.toUtc().toIso8601String(),
+            'createdAt': row.createdAt.toUtc().toIso8601String(),
+          },
+      ],
     };
   }
 
@@ -660,7 +831,9 @@ class AppDatabase extends _$AppDatabase {
     final categoryList = (json['categories'] as List?) ?? const [];
     final methodList = (json['paymentMethods'] as List?) ?? const [];
     final expenseList = (json['expenses'] as List?) ?? const [];
+    final templateList = (json['templates'] as List?) ?? const [];
     final settingList = (json['settings'] as List?) ?? const [];
+    var importedTemplates = 0;
 
     await transaction(() async {
       for (final raw in categoryList) {
@@ -691,6 +864,47 @@ class AppDatabase extends _$AppDatabase {
           ),
           mode: InsertMode.insertOrIgnore,
         );
+      }
+
+      final categoryIds = {
+        for (final row in await select(categories).get()) row.id,
+      };
+      final methodIds = {
+        for (final row in await select(paymentMethods).get()) row.id,
+      };
+
+      for (final raw in templateList) {
+        final map = Map<String, dynamic>.from(raw as Map);
+        final categoryId = map['categoryId'] as String?;
+        if (categoryId == null || !categoryIds.contains(categoryId)) {
+          // Skip templates that point at categories missing from this backup.
+          continue;
+        }
+        final paymentMethodId = map['paymentMethodId'] as String?;
+        if (paymentMethodId != null && !methodIds.contains(paymentMethodId)) {
+          continue;
+        }
+        final currency = map['currency'] as String?;
+        if (currency == null || !Money.supportedCurrencies.contains(currency)) {
+          // The app only models PEN and USD.
+          continue;
+        }
+        await into(templates).insert(
+          TemplatesCompanion.insert(
+            id: map['id'] as String,
+            name: map['name'] as String,
+            amountCents: map['amountCents'] as int,
+            currency: currency,
+            categoryId: categoryId,
+            paymentMethodId: Value(paymentMethodId),
+            note: Value(map['note'] as String?),
+            sortOrder: Value(map['sortOrder'] as int? ?? 0),
+            archivedAt: Value(_parseDate(map['archivedAt'])),
+            createdAt: _parseDate(map['createdAt']) ?? DateTime.now(),
+          ),
+          mode: InsertMode.insertOrIgnore,
+        );
+        importedTemplates++;
       }
 
       for (final raw in expenseList) {
@@ -728,6 +942,7 @@ class AppDatabase extends _$AppDatabase {
       categories: categoryList.length,
       paymentMethods: methodList.length,
       expenses: expenseList.length,
+      templates: importedTemplates,
     );
   }
 

@@ -355,6 +355,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Create your own list with a name and emoji';
 
   @override
+  String get settingsTemplates => 'Templates';
+
+  @override
+  String get settingsTemplatesSubtitle =>
+      'Save frequent expenses for quick entry';
+
+  @override
   String get settingsBackup => 'Backup';
 
   @override
@@ -462,6 +469,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'Add your first category to start recording expenses.';
 
   @override
+  String categoriesArchiveTemplatesMessage(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '\"$name\" is used by $count templates. Archiving keeps your templates intact.',
+      one:
+          '\"$name\" is used by 1 template. Archiving keeps your templates intact.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get paymentMethodsTitle => 'Payment methods';
 
   @override
@@ -506,6 +526,83 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get paymentMethodsEmptyMessage =>
       'Add cash, cards or wallets to track how you pay.';
+
+  @override
+  String paymentMethodsArchiveTemplatesMessage(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '\"$name\" is used by $count templates. Archiving keeps your templates intact.',
+      one:
+          '\"$name\" is used by 1 template. Archiving keeps your templates intact.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get templatesTitle => 'Templates';
+
+  @override
+  String get templatesNewTitle => 'New template';
+
+  @override
+  String get templatesEditTitle => 'Edit template';
+
+  @override
+  String get templatesName => 'Name';
+
+  @override
+  String get templatesNameError => 'Enter a name.';
+
+  @override
+  String get templatesAmount => 'Amount';
+
+  @override
+  String get templatesCurrency => 'Currency';
+
+  @override
+  String get templatesCategory => 'Category';
+
+  @override
+  String get templatesPaymentMethod => 'Payment method';
+
+  @override
+  String get templatesNote => 'Note';
+
+  @override
+  String get templatesUseTemplate => 'Use template';
+
+  @override
+  String get templatesChooseTitle => 'Choose a template';
+
+  @override
+  String get templatesSaveAsTemplate => 'Save as template';
+
+  @override
+  String get templatesSaved => 'Template saved.';
+
+  @override
+  String get templatesSaveError =>
+      'Could not save the template. Please try again.';
+
+  @override
+  String get templateArchived => 'Archived';
+
+  @override
+  String get templatesEmptyTitle => 'No templates yet';
+
+  @override
+  String get templatesEmptyMessage =>
+      'Save frequent expenses to record them in a couple of taps.';
+
+  @override
+  String get templatesDeleteDialogTitle => 'Delete template?';
+
+  @override
+  String templatesDeleteDialogMessage(String name) {
+    return 'Delete \"$name\"? This cannot be undone.';
+  }
 
   @override
   String get aboutTitle => 'About';

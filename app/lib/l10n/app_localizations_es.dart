@@ -358,6 +358,13 @@ class AppLocalizationsEs extends AppLocalizations {
       'Crea tu lista con nombre y emoji';
 
   @override
+  String get settingsTemplates => 'Plantillas';
+
+  @override
+  String get settingsTemplatesSubtitle =>
+      'Guarda gastos frecuentes para registrarlos rápido';
+
+  @override
   String get settingsBackup => 'Copia de seguridad';
 
   @override
@@ -467,6 +474,19 @@ class AppLocalizationsEs extends AppLocalizations {
       'Agrega tu primera categoría para empezar a registrar gastos.';
 
   @override
+  String categoriesArchiveTemplatesMessage(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '\"$name\" se usa en $count plantillas. Archivar conserva tus plantillas intactas.',
+      one:
+          '\"$name\" se usa en 1 plantilla. Archivar conserva tus plantillas intactas.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get paymentMethodsTitle => 'Medios de pago';
 
   @override
@@ -510,6 +530,83 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get paymentMethodsEmptyMessage =>
       'Agrega efectivo, tarjetas o billeteras para saber cómo pagas.';
+
+  @override
+  String paymentMethodsArchiveTemplatesMessage(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '\"$name\" se usa en $count plantillas. Archivar conserva tus plantillas intactas.',
+      one:
+          '\"$name\" se usa en 1 plantilla. Archivar conserva tus plantillas intactas.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get templatesTitle => 'Plantillas';
+
+  @override
+  String get templatesNewTitle => 'Nueva plantilla';
+
+  @override
+  String get templatesEditTitle => 'Editar plantilla';
+
+  @override
+  String get templatesName => 'Nombre';
+
+  @override
+  String get templatesNameError => 'Ingresa un nombre.';
+
+  @override
+  String get templatesAmount => 'Monto';
+
+  @override
+  String get templatesCurrency => 'Moneda';
+
+  @override
+  String get templatesCategory => 'Categoría';
+
+  @override
+  String get templatesPaymentMethod => 'Medio de pago';
+
+  @override
+  String get templatesNote => 'Nota';
+
+  @override
+  String get templatesUseTemplate => 'Usar plantilla';
+
+  @override
+  String get templatesChooseTitle => 'Elige una plantilla';
+
+  @override
+  String get templatesSaveAsTemplate => 'Guardar como plantilla';
+
+  @override
+  String get templatesSaved => 'Plantilla guardada.';
+
+  @override
+  String get templatesSaveError =>
+      'No se pudo guardar la plantilla. Inténtalo de nuevo.';
+
+  @override
+  String get templateArchived => 'Archivada';
+
+  @override
+  String get templatesEmptyTitle => 'Aún no hay plantillas';
+
+  @override
+  String get templatesEmptyMessage =>
+      'Guarda gastos frecuentes para registrarlos en un par de toques.';
+
+  @override
+  String get templatesDeleteDialogTitle => '¿Eliminar plantilla?';
+
+  @override
+  String templatesDeleteDialogMessage(String name) {
+    return '¿Eliminar \"$name\"? Esta acción no se puede deshacer.';
+  }
 
   @override
   String get aboutTitle => 'Acerca de';

@@ -144,6 +144,8 @@
   "settingsCategoriesSubtitle": "Create, edit, reorder or archive",
   "settingsPaymentMethods": "Payment methods",
   "settingsPaymentMethodsSubtitle": "Create your own list with a name and emoji",
+  "settingsTemplates": "Templates",
+  "settingsTemplatesSubtitle": "Save frequent expenses for quick entry",
   "settingsBackup": "Backup",
   "settingsExportJson": "Export JSON backup",
   "settingsExportJsonSubtitle": "Full backup you can import later",
@@ -203,6 +205,17 @@
   },
   "categoriesEmptyTitle": "No categories yet",
   "categoriesEmptyMessage": "Add your first category to start recording expenses.",
+  "categoriesArchiveTemplatesMessage": "{count, plural, =1{\"{name}\" is used by 1 template. Archiving keeps your templates intact.} other{\"{name}\" is used by {count} templates. Archiving keeps your templates intact.}}",
+  "@categoriesArchiveTemplatesMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
 
   "paymentMethodsTitle": "Payment methods",
   "paymentMethodsNewTitle": "New payment method",
@@ -232,6 +245,45 @@
   },
   "paymentMethodsEmptyTitle": "No payment methods yet",
   "paymentMethodsEmptyMessage": "Add cash, cards or wallets to track how you pay.",
+  "paymentMethodsArchiveTemplatesMessage": "{count, plural, =1{\"{name}\" is used by 1 template. Archiving keeps your templates intact.} other{\"{name}\" is used by {count} templates. Archiving keeps your templates intact.}}",
+  "@paymentMethodsArchiveTemplatesMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "templatesTitle": "Templates",
+  "templatesNewTitle": "New template",
+  "templatesEditTitle": "Edit template",
+  "templatesName": "Name",
+  "templatesNameError": "Enter a name.",
+  "templatesAmount": "Amount",
+  "templatesCurrency": "Currency",
+  "templatesCategory": "Category",
+  "templatesPaymentMethod": "Payment method",
+  "templatesNote": "Note",
+  "templatesUseTemplate": "Use template",
+  "templatesChooseTitle": "Choose a template",
+  "templatesSaveAsTemplate": "Save as template",
+  "templatesSaved": "Template saved.",
+  "templatesSaveError": "Could not save the template. Please try again.",
+  "templateArchived": "Archived",
+  "templatesEmptyTitle": "No templates yet",
+  "templatesEmptyMessage": "Save frequent expenses to record them in a couple of taps.",
+  "templatesDeleteDialogTitle": "Delete template?",
+  "templatesDeleteDialogMessage": "Delete \"{name}\"? This cannot be undone.",
+  "@templatesDeleteDialogMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
 
   "aboutTitle": "About",
   "aboutTagline": "A local-first expense tracker for Android.",

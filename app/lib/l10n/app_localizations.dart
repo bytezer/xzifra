@@ -764,6 +764,18 @@ abstract class AppLocalizations {
   /// **'Create your own list with a name and emoji'**
   String get settingsPaymentMethodsSubtitle;
 
+  /// No description provided for @settingsTemplates.
+  ///
+  /// In en, this message translates to:
+  /// **'Templates'**
+  String get settingsTemplates;
+
+  /// No description provided for @settingsTemplatesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save frequent expenses for quick entry'**
+  String get settingsTemplatesSubtitle;
+
   /// No description provided for @settingsBackup.
   ///
   /// In en, this message translates to:
@@ -944,6 +956,12 @@ abstract class AppLocalizations {
   /// **'Add your first category to start recording expenses.'**
   String get categoriesEmptyMessage;
 
+  /// No description provided for @categoriesArchiveTemplatesMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{\"{name}\" is used by 1 template. Archiving keeps your templates intact.} other{\"{name}\" is used by {count} templates. Archiving keeps your templates intact.}}'**
+  String categoriesArchiveTemplatesMessage(String name, int count);
+
   /// No description provided for @paymentMethodsTitle.
   ///
   /// In en, this message translates to:
@@ -1009,6 +1027,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add cash, cards or wallets to track how you pay.'**
   String get paymentMethodsEmptyMessage;
+
+  /// No description provided for @paymentMethodsArchiveTemplatesMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{\"{name}\" is used by 1 template. Archiving keeps your templates intact.} other{\"{name}\" is used by {count} templates. Archiving keeps your templates intact.}}'**
+  String paymentMethodsArchiveTemplatesMessage(String name, int count);
+
+  /// No description provided for @templatesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Templates'**
+  String get templatesTitle;
+
+  /// No description provided for @templatesNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New template'**
+  String get templatesNewTitle;
+
+  /// No description provided for @templatesEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit template'**
+  String get templatesEditTitle;
+
+  /// No description provided for @templatesName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get templatesName;
+
+  /// No description provided for @templatesNameError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name.'**
+  String get templatesNameError;
+
+  /// No description provided for @templatesAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get templatesAmount;
+
+  /// No description provided for @templatesCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get templatesCurrency;
+
+  /// No description provided for @templatesCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get templatesCategory;
+
+  /// No description provided for @templatesPaymentMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment method'**
+  String get templatesPaymentMethod;
+
+  /// No description provided for @templatesNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get templatesNote;
+
+  /// No description provided for @templatesUseTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Use template'**
+  String get templatesUseTemplate;
+
+  /// No description provided for @templatesChooseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a template'**
+  String get templatesChooseTitle;
+
+  /// No description provided for @templatesSaveAsTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as template'**
+  String get templatesSaveAsTemplate;
+
+  /// No description provided for @templatesSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Template saved.'**
+  String get templatesSaved;
+
+  /// No description provided for @templatesSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the template. Please try again.'**
+  String get templatesSaveError;
+
+  /// No description provided for @templateArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get templateArchived;
+
+  /// No description provided for @templatesEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No templates yet'**
+  String get templatesEmptyTitle;
+
+  /// No description provided for @templatesEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Save frequent expenses to record them in a couple of taps.'**
+  String get templatesEmptyMessage;
+
+  /// No description provided for @templatesDeleteDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete template?'**
+  String get templatesDeleteDialogTitle;
+
+  /// No description provided for @templatesDeleteDialogMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"? This cannot be undone.'**
+  String templatesDeleteDialogMessage(String name);
 
   /// No description provided for @aboutTitle.
   ///

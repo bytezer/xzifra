@@ -9,6 +9,7 @@ import '../../domain/money.dart';
 import '../../domain/periods.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
+import '../templates/template_editor.dart';
 import 'widgets/amount_keypad.dart';
 
 /// The three ways the expense form can be opened.
@@ -153,14 +154,39 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
         .where((item) => item.archivedAt == null || item.id == _paymentMethodId)
         .toList();
 
+    final templates =
+        ref.watch(templatesProvider).asData?.value ?? const <Template>[];
+
     return Scaffold(
-      appBar: AppBar(title: Text(_title(l10n))),
+      appBar: AppBar(
+        title: Text(_title(l10n)),
+        actions: [
+          if (_isEditing)
+            IconButton(
+              tooltip: l10n.templatesSaveAsTemplate,
+              icon: const Icon(Icons.bookmark_add_outlined),
+              onPressed: _saving ? null : _saveAsTemplate,
+            ),
+        ],
+      ),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         behavior: HitTestBehavior.opaque,
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
+            if (!_isEditing && templates.isNotEmpty)
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: _saving
+                      ? null
+                      : () =>
+                            _pickTemplate(templates, allCategories, allMethods),
+                  icon: const Icon(Icons.bookmark_border, size: 18),
+                  label: Text(l10n.templatesUseTemplate),
+                ),
+              ),
             Card(
               color: scheme.primaryContainer,
               child: Padding(
@@ -360,6 +386,136 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
     );
     if (picked != null) {
       setState(() => _date = picked);
+    }
+  }
+
+  Future<void> _pickTemplate(
+    List<Template> templates,
+    List<Category> categories,
+    List<PaymentMethod> methods,
+  ) async {
+    final l10n = context.l10n;
+    final categoriesById = {for (final item in categories) item.id: item};
+    final methodsById = {for (final item in methods) item.id: item};
+    final selected = await showModalBottomSheet<Template>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Text(
+                l10n.templatesChooseTitle,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            for (final template in templates)
+              ListTile(
+                leading: CircleAvatar(
+                  child: Text(
+                    categoriesById[template.categoryId]?.icon ?? '🔖',
+                  ),
+                ),
+                title: Text(template.name),
+                subtitle: Text(
+                  [
+                    Money.format(
+                      template.amountCents,
+                      template.currency,
+                      locale: localeNameOf(context),
+                    ),
+                    if (categoriesById[template.categoryId] != null)
+                      categoriesById[template.categoryId]!.name,
+                    if (methodsById[template.paymentMethodId] != null)
+                      methodsById[template.paymentMethodId]!.name,
+                  ].join(' · '),
+                ),
+                onTap: () => Navigator.of(context).pop(template),
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (selected == null || !mounted) return;
+
+    final now = DateTime.now();
+    setState(() {
+      _amount = AmountInput.fromCents(selected.amountCents);
+      _currency = Money.supportedCurrencies.contains(selected.currency)
+          ? selected.currency
+          : _currency;
+      _categoryId = selected.categoryId;
+      _paymentMethodId = selected.paymentMethodId;
+      _date = DateTime(now.year, now.month, now.day);
+      _noteController.text = selected.note ?? '';
+    });
+  }
+
+  Future<void> _saveAsTemplate() async {
+    final l10n = context.l10n;
+    final cents = _amount.cents;
+    if (cents <= 0) {
+      _showMessage(l10n.expenseAmountError);
+      return;
+    }
+    final categoryId = _categoryId;
+    if (categoryId == null) {
+      _showMessage(l10n.expenseCategoryError);
+      return;
+    }
+
+    final categories =
+        ref.read(allCategoriesProvider).asData?.value ?? const <Category>[];
+    final methods =
+        ref.read(allPaymentMethodsProvider).asData?.value ??
+        const <PaymentMethod>[];
+    final categoryMatches = categories.where((item) => item.id == categoryId);
+    final categoryName = categoryMatches.isEmpty
+        ? null
+        : categoryMatches.first.name;
+    final note = _noteController.text.trim();
+    var suggestedName = note.isNotEmpty
+        ? note
+        : (categoryName ?? l10n.templatesTitle);
+    if (suggestedName.length > 60) {
+      suggestedName = suggestedName.substring(0, 60);
+    }
+
+    final result = await showTemplateEditor(
+      context,
+      categories: categories,
+      methods: methods,
+      initial: TemplateEditorResult(
+        name: suggestedName,
+        amountCents: cents,
+        currency: _currency,
+        categoryId: categoryId,
+        paymentMethodId: _paymentMethodId,
+        note: note.isEmpty ? null : note,
+      ),
+      defaultCurrency: _currency,
+    );
+    if (result == null || !mounted) return;
+
+    try {
+      await ref
+          .read(databaseProvider)
+          .addTemplate(
+            name: result.name,
+            amountCents: result.amountCents,
+            currency: result.currency,
+            categoryId: result.categoryId,
+            paymentMethodId: result.paymentMethodId,
+            note: result.note,
+          );
+      if (!mounted) return;
+      _showMessage(l10n.templatesSaved);
+    } catch (_) {
+      if (!mounted) return;
+      _showMessage(l10n.templatesSaveError);
     }
   }
 

@@ -39,6 +39,14 @@ final allPaymentMethodsProvider = StreamProvider<List<PaymentMethod>>((ref) {
   return ref.watch(databaseProvider).watchPaymentMethods(includeArchived: true);
 });
 
+final templatesProvider = StreamProvider<List<Template>>((ref) {
+  return ref.watch(databaseProvider).watchTemplates();
+});
+
+final allTemplatesProvider = StreamProvider<List<Template>>((ref) {
+  return ref.watch(databaseProvider).watchTemplates(includeArchived: true);
+});
+
 final monthExpensesProvider =
     StreamProvider.family<List<ExpenseView>, ExpenseQuery>((ref, query) {
       return ref

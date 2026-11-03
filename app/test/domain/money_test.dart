@@ -33,6 +33,23 @@ void main() {
       expect(Money.decimal(1250), '12.50');
       expect(Money.decimal(5), '0.05');
     });
+
+    test('parseCents accepts dot and comma decimals', () {
+      expect(Money.parseCents('12.50'), 1250);
+      expect(Money.parseCents('12,50'), 1250);
+      expect(Money.parseCents(' 12 '), 1200);
+      expect(Money.parseCents('0,05'), 5);
+      expect(Money.parseCents('12.'), 1200);
+    });
+
+    test('parseCents rejects empty, zero, negative or invalid amounts', () {
+      expect(Money.parseCents(''), isNull);
+      expect(Money.parseCents('0'), isNull);
+      expect(Money.parseCents('0.00'), isNull);
+      expect(Money.parseCents('-2'), isNull);
+      expect(Money.parseCents('12.345'), isNull);
+      expect(Money.parseCents('abc'), isNull);
+    });
   });
 
   group('AmountInput', () {

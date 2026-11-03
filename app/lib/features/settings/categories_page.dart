@@ -255,18 +255,23 @@ class CategoriesPage extends ConsumerWidget {
     AppDatabase database,
     Category category,
   ) async {
-    final count = await database.countExpensesForCategory(category.id);
+    final expenseCount = await database.countExpensesForCategory(category.id);
+    final templateCount = await database.countTemplatesForCategory(category.id);
     if (!context.mounted) return;
     final l10n = context.l10n;
 
-    if (count > 0) {
+    if (expenseCount > 0 || templateCount > 0) {
+      final message = expenseCount > 0
+          ? l10n.categoriesArchiveDialogMessage(category.name, expenseCount)
+          : l10n.categoriesArchiveTemplatesMessage(
+              category.name,
+              templateCount,
+            );
       final archive = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
           title: Text(l10n.categoriesArchiveDialogTitle),
-          content: Text(
-            l10n.categoriesArchiveDialogMessage(category.name, count),
-          ),
+          content: Text(message),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),

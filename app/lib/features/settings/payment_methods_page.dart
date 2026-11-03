@@ -207,18 +207,27 @@ class PaymentMethodsPage extends ConsumerWidget {
     AppDatabase database,
     PaymentMethod method,
   ) async {
-    final count = await database.countExpensesForPaymentMethod(method.id);
+    final expenseCount = await database.countExpensesForPaymentMethod(
+      method.id,
+    );
+    final templateCount = await database.countTemplatesForPaymentMethod(
+      method.id,
+    );
     if (!context.mounted) return;
     final l10n = context.l10n;
 
-    if (count > 0) {
+    if (expenseCount > 0 || templateCount > 0) {
+      final message = expenseCount > 0
+          ? l10n.paymentMethodsArchiveDialogMessage(method.name, expenseCount)
+          : l10n.paymentMethodsArchiveTemplatesMessage(
+              method.name,
+              templateCount,
+            );
       final archive = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
           title: Text(l10n.paymentMethodsArchiveDialogTitle),
-          content: Text(
-            l10n.paymentMethodsArchiveDialogMessage(method.name, count),
-          ),
+          content: Text(message),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),

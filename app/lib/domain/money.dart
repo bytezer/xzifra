@@ -32,6 +32,37 @@ class Money {
   }
 
   static String decimal(int cents) => (cents / 100).toStringAsFixed(2);
+
+  /// Parses a user-entered amount such as `12.50` or `12,50` into cents.
+  ///
+  /// Returns `null` when the text is not a positive amount with at most two
+  /// decimal places.
+  static int? parseCents(String input) {
+    final text = input.trim().replaceAll(' ', '').replaceAll(',', '.');
+    if (text.isEmpty) return null;
+    final parts = text.split('.');
+    if (parts.length > 2) return null;
+
+    final wholeText = parts.first.isEmpty ? '0' : parts.first;
+    if (!_digitsOnly.hasMatch(wholeText)) return null;
+    final whole = int.tryParse(wholeText);
+    if (whole == null) return null;
+
+    var fraction = 0;
+    if (parts.length == 2) {
+      final fractionText = parts[1];
+      if (fractionText.length > 2) return null;
+      if (fractionText.isNotEmpty) {
+        if (!_digitsOnly.hasMatch(fractionText)) return null;
+        fraction = int.parse(fractionText.padRight(2, '0'));
+      }
+    }
+
+    final cents = whole * 100 + fraction;
+    return cents > 0 ? cents : null;
+  }
+
+  static final RegExp _digitsOnly = RegExp(r'^\d+$');
 }
 
 /// Incremental amount input used by the custom numeric keypad.
