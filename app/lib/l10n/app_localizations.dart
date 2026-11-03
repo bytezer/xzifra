@@ -284,6 +284,12 @@ abstract class AppLocalizations {
   /// **'Reports'**
   String get shortcutReports;
 
+  /// No description provided for @widgetEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Xzifra to see this month'**
+  String get widgetEmptyMessage;
+
   /// No description provided for @dashboardSpentThisMonth.
   ///
   /// In en, this message translates to:

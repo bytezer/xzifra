@@ -8,6 +8,7 @@ import 'app.dart';
 import 'core/app_shortcuts.dart';
 import 'core/locale_settings.dart';
 import 'core/theme_settings.dart';
+import 'core/widget_data_sync.dart';
 import 'data/database.dart';
 import 'providers.dart';
 
@@ -36,6 +37,10 @@ Future<void> main() async {
   // Read the launch shortcut before the first frame. Actions that arrive
   // before the router is mounted are kept pending by AppShortcuts.
   await AppShortcuts.initialize();
+
+  // Widget taps can arrive before or after the router mounts; WidgetDataSync
+  // holds an early action until the first frame.
+  await WidgetDataSync.initialize();
 
   runApp(
     ProviderScope(

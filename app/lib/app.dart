@@ -5,6 +5,7 @@ import 'core/app_shortcuts.dart';
 import 'core/locale_settings.dart';
 import 'core/theme.dart';
 import 'core/theme_settings.dart';
+import 'core/widget_data_sync.dart';
 import 'l10n/app_localizations.dart';
 import 'providers.dart';
 import 'routing/router.dart';
@@ -42,8 +43,9 @@ class XzifraApp extends ConsumerWidget {
       locale: localeSetting.locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
-      builder: (context, child) =>
-          _ShortcutLabelSync(child: child ?? const SizedBox.shrink()),
+      builder: (context, child) => _ShortcutLabelSync(
+        child: WidgetDataSync(child: child ?? const SizedBox.shrink()),
+      ),
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
     );
   }
@@ -68,6 +70,7 @@ class _ShortcutLabelSyncState extends State<_ShortcutLabelSync> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       AppShortcuts.markReady();
+      WidgetDataSync.markReady();
       if (mounted) _syncLabels();
     });
   }

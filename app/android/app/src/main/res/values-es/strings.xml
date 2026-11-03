@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="xzifra_widget_label">Xzifra</string>
+    <string name="xzifra_widget_description">Resumen de gastos del mes</string>
+    <string name="xzifra_widget_empty">Abre Xzifra para ver este mes</string>
+    <string name="xzifra_widget_add">Agregar gasto</string>
+</resources>

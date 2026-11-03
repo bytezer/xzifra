@@ -103,6 +103,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get shortcutReports => 'Reportes';
 
   @override
+  String get widgetEmptyMessage => 'Abre Xzifra para ver este mes';
+
+  @override
   String get dashboardSpentThisMonth => 'Gastado este mes';
 
   @override

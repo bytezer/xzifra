@@ -39,6 +39,8 @@
   "shortcutNewExpense": "Nuevo gasto",
   "shortcutReports": "Reportes",
 
+  "widgetEmptyMessage": "Abre Xzifra para ver este mes",
+
   "dashboardSpentThisMonth": "Gastado este mes",
   "dashboardTopCategories": "Categorías principales",
   "dashboardRecentExpenses": "Gastos recientes",

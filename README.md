@@ -26,6 +26,8 @@ budgets.
   can be switched in **Settings → Language**.
 - **About** — real version and build, commit and branch, repo links, diagnostics
   and open-source licenses.
+- **Home-screen widget** — current month total and a one-tap `+` button to add
+  an expense (Android).
 
 ## Themes
 
@@ -36,6 +38,17 @@ budgets.
 
 Pick one in **Settings → Appearance**. The choice is stored in the local
 database, so it survives restarts and travels with JSON backups.
+
+## Home-screen widget
+
+Add **Xzifra** from the Android widget picker. It shows the current month total
+in the default currency (formatted with the app language) and a `+` button that
+opens the new-expense form directly. Tapping the rest of the widget opens the
+app.
+
+The widget refreshes when the app starts or resumes and whenever expenses change.
+It does not run background refreshes, so a month rollover while the app stays
+closed updates on the next open/resume.
 
 ## Stack
 

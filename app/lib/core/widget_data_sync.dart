@@ -1,0 +1,233 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:home_widget/home_widget.dart';
+
+import '../domain/periods.dart';
+import '../l10n/app_localizations.dart';
+import '../providers.dart';
+import '../routing/router.dart';
+import 'widget_text.dart';
+
+/// Keeps the Android home-screen widget in sync with the current month and
+/// routes taps that launched the app from the widget.
+///
+/// The plugin is Android-only and unavailable in widget tests, so every call is
+/// best-effort: failures must never stop the app from starting or rendering.
+class WidgetDataSync extends ConsumerStatefulWidget {
+  const WidgetDataSync({super.key, required this.child});
+
+  final Widget child;
+
+  static const String androidName = 'XzifraWidgetProvider';
+  static const String monthKey = 'xzifra_widget_month';
+  static const String amountKey = 'xzifra_widget_amount';
+  static const String emptyMessageKey = 'xzifra_widget_empty';
+
+  static const String addUri = 'xzifra://add';
+  static const String openUri = 'xzifra://open';
+
+  static StreamSubscription<Uri?>? _subscription;
+  static bool _initialized = false;
+  static bool _ready = false;
+  static Uri? _pending;
+
+  /// Reads the launch URI and listens for widget taps while the app is running.
+  ///
+  /// Must be called after `WidgetsFlutterBinding.ensureInitialized()` and before
+  /// `runApp`.
+  static Future<void> initialize() async {
+    if (_initialized) return;
+    _initialized = true;
+
+    try {
+      _subscription ??= HomeWidget.widgetClicked.listen(
+        _handleLaunchUri,
+        onError: (Object _) {
+          // No widget support on this platform; the app still works.
+        },
+      );
+    } on MissingPluginException {
+      // Widgets are Android-only.
+    } on PlatformException {
+      // Keep the app usable if the widget channel is unavailable.
+    }
+
+    try {
+      _handleLaunchUri(await HomeWidget.initiallyLaunchedFromHomeWidget());
+    } on MissingPluginException {
+      // Widgets are Android-only.
+    } on PlatformException {
+      // Keep the app usable if the widget channel is unavailable.
+    }
+  }
+
+  /// Releases the action that opened the app once the router has rendered.
+  static void markReady() {
+    if (_ready) return;
+    _ready = true;
+    final pending = _pending;
+    if (pending == null) return;
+    _pending = null;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _open(pending));
+  }
+
+  static void _handleLaunchUri(Uri? uri) {
+    if (uri == null || routeFor(uri) == null) return;
+    if (!_ready) {
+      _pending = uri;
+      return;
+    }
+    _open(uri);
+  }
+
+  /// Maps a widget URI to an app route. Returns `null` for foreign URIs.
+  static String? routeFor(Uri uri) {
+    if (uri.scheme != 'xzifra') return null;
+    return switch (uri.host) {
+      'add' => '/add',
+      'open' => '/',
+      _ => null,
+    };
+  }
+
+  static void _open(Uri uri) {
+    final route = routeFor(uri);
+    if (route == null) return;
+    if (route == '/') {
+      appRouter.go(route);
+    } else {
+      appRouter.push(route);
+    }
+  }
+
+  /// Writes the widget text and asks the launcher to redraw it.
+  static Future<void> push(
+    WidgetText text, {
+    required String emptyMessage,
+  }) async {
+    try {
+      await HomeWidget.saveWidgetData<String>(monthKey, text.monthLabel);
+      await HomeWidget.saveWidgetData<String>(amountKey, text.amountLabel);
+      await HomeWidget.saveWidgetData<String>(emptyMessageKey, emptyMessage);
+      await HomeWidget.updateWidget(androidName: androidName);
+    } on MissingPluginException {
+      // Widgets are Android-only.
+    } on PlatformException {
+      // Keep the app usable if the launcher rejects the update.
+    }
+  }
+
+  @override
+  ConsumerState<WidgetDataSync> createState() => _WidgetDataSyncState();
+}
+
+class _WidgetDataSyncState extends ConsumerState<WidgetDataSync>
+    with WidgetsBindingObserver {
+  String? _lastSignature;
+  bool _syncScheduled = false;
+  AppLocalizations? _l10n;
+  String? _localeName;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // The active locale (and therefore the month and amount formats) changed.
+    _l10n = AppLocalizations.of(context);
+    _localeName = Localizations.localeOf(context).languageCode;
+    _scheduleSync();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _scheduleSync();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currency = ref.watch(defaultCurrencyProvider).asData?.value;
+    if (currency != null) {
+      final month = _currentMonth();
+      // Rebuild (and resync) whenever an expense is added, edited, deleted or
+      // imported, because every mutation updates this total.
+      ref.watch(
+        monthTotalProvider((
+          start: Periods.startKey(month),
+          endExclusive: Periods.endKeyExclusive(month),
+          currency: currency,
+        )),
+      );
+    }
+    _scheduleSync();
+    return widget.child;
+  }
+
+  static DateTime _currentMonth() {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month);
+  }
+
+  void _scheduleSync() {
+    if (_syncScheduled) return;
+    _syncScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _syncScheduled = false;
+      if (mounted) _sync();
+    });
+  }
+
+  Future<void> _sync() async {
+    final currency = ref.read(defaultCurrencyProvider).asData?.value;
+    if (currency == null) return;
+
+    final month = _currentMonth();
+    final total = ref
+        .read(
+          monthTotalProvider((
+            start: Periods.startKey(month),
+            endExclusive: Periods.endKeyExclusive(month),
+            currency: currency,
+          )),
+        )
+        .asData
+        ?.value;
+    // Wait for the first database value; the native widget keeps showing its
+    // empty state until then.
+    if (total == null) return;
+
+    final l10n = _l10n;
+    final locale = _localeName;
+    if (l10n == null || locale == null) return;
+    final text = WidgetTextFormatter.format(
+      month: month,
+      totalCents: total,
+      currency: currency,
+      locale: locale,
+      emptyMessage: l10n.widgetEmptyMessage,
+    );
+    final signature = [
+      text.monthLabel,
+      text.amountLabel,
+      l10n.widgetEmptyMessage,
+      locale,
+    ].join('|');
+    if (signature == _lastSignature) return;
+    _lastSignature = signature;
+
+    await WidgetDataSync.push(text, emptyMessage: l10n.widgetEmptyMessage);
+  }
+}
