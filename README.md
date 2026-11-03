@@ -20,6 +20,20 @@ budgets.
   works offline and has no backend.
 - **Backup** — export a full JSON backup or a CSV for spreadsheets, and import a
   JSON backup to restore or merge.
+- **Themes** — Indigo (light/dark) and Cyber Red (black surfaces with neon red
+  accents, dark only).
+- **About** — real version and build, commit and branch, repo links, diagnostics
+  and open-source licenses.
+
+## Themes
+
+| Preset | Look | Modes |
+| --- | --- | --- |
+| Indigo | Indigo accents on Material 3 surfaces | System, light, dark |
+| Cyber Red | Black surfaces with neon red accents | Dark only |
+
+Pick one in **Settings → Appearance**. The choice is stored in the local
+database, so it survives restarts and travels with JSON backups.
 
 ## Stack
 
@@ -85,14 +99,17 @@ adb install -r app/build/app/outputs/flutter-apk/app-release.apk
 `-r` keeps the existing app data. See [docs/signing.md](docs/signing.md) before
 rebuilding — the signing key must be kept safe.
 
+The build script injects the current commit, branch and UTC build date via
+`--dart-define`, so the About page can show exactly which build is installed.
+
 ## Project structure
 
 ```
 app/lib/
-  core/        theme and shared widgets
+  core/        theme presets, theme settings and shared widgets
   data/        Drift schema, queries, seed, export/import
   domain/      money, periods and report math (pure Dart, tested)
-  features/    dashboard, expenses, reports, settings
+  features/    dashboard, expenses, reports, settings (incl. About)
   routing/     go_router configuration and app shell
 app/test/      unit and database tests
 app/assets/    launcher icon sources
@@ -127,3 +144,9 @@ existing records win on conflict.
 
 Budgets, income tracking, account balances, bank sync, recurring expenses, receipt
 photos, multi-user support and cloud sync.
+
+## License
+
+MIT — see [LICENSE](LICENSE). The launcher icon is based on Lucide's `x` glyph
+(ISC, derived from Feather/MIT); the full notice is in
+`app/assets/icon/LICENSE-lucide.txt` and in the app's open-source licenses page.

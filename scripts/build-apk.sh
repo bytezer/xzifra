@@ -25,7 +25,16 @@ fi
 
 cd "$ROOT/app"
 flutter pub get
-flutter build apk --release "$@"
+
+GIT_COMMIT="$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo dev)"
+GIT_BRANCH="$(git -C "$ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo main)"
+BUILD_DATE="$(date -u +%Y-%m-%d)"
+
+flutter build apk --release \
+  --dart-define=BUILD_COMMIT="$GIT_COMMIT" \
+  --dart-define=BUILD_BRANCH="$GIT_BRANCH" \
+  --dart-define=BUILD_DATE="$BUILD_DATE" \
+  "$@"
 
 echo
 echo "APK: $ROOT/app/build/app/outputs/flutter-apk/app-release.apk"

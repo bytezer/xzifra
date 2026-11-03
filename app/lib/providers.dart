@@ -1,5 +1,8 @@
+import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
+import 'core/theme_settings.dart';
 import 'data/database.dart';
 import 'domain/reports.dart';
 
@@ -172,3 +175,25 @@ class SelectedCurrency extends Notifier<String> {
 final selectedCurrencyProvider = NotifierProvider<SelectedCurrency, String>(
   SelectedCurrency.new,
 );
+
+final initialThemeProvider = Provider<AppThemeSettings>(
+  (ref) => const AppThemeSettings(),
+);
+
+final themePresetProvider = StreamProvider<AppThemePreset>((ref) {
+  return ref
+      .watch(databaseProvider)
+      .watchSetting('themePreset')
+      .map(parseThemePreset);
+});
+
+final themeModeProvider = StreamProvider<ThemeMode>((ref) {
+  return ref
+      .watch(databaseProvider)
+      .watchSetting('themeMode')
+      .map(parseThemeMode);
+});
+
+final packageInfoProvider = FutureProvider<PackageInfo>((ref) {
+  return PackageInfo.fromPlatform();
+});

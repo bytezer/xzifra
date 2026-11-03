@@ -5,6 +5,7 @@ import '../features/dashboard/dashboard_page.dart';
 import '../features/expenses/expense_form_page.dart';
 import '../features/expenses/expenses_page.dart';
 import '../features/reports/reports_page.dart';
+import '../features/settings/about_page.dart';
 import '../features/settings/categories_page.dart';
 import '../features/settings/payment_methods_page.dart';
 import '../features/settings/settings_page.dart';
@@ -56,6 +57,10 @@ final GoRouter appRouter = GoRouter(
                 GoRoute(
                   path: 'payment-methods',
                   builder: (context, state) => const PaymentMethodsPage(),
+                ),
+                GoRoute(
+                  path: 'about',
+                  builder: (context, state) => const AboutPage(),
                 ),
               ],
             ),

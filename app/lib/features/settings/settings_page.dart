@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/widgets/section_card.dart';
+import '../../core/theme_settings.dart';
 import '../../data/export_service.dart';
 import '../../providers.dart';
 
@@ -11,9 +11,13 @@ class SettingsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final defaultCurrency =
         ref.watch(defaultCurrencyProvider).asData?.value ?? 'PEN';
+    final initialTheme = ref.watch(initialThemeProvider);
+    final preset =
+        ref.watch(themePresetProvider).asData?.value ?? initialTheme.preset;
+    final storedMode =
+        ref.watch(themeModeProvider).asData?.value ?? initialTheme.mode;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
@@ -22,6 +26,41 @@ class SettingsPage extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
           children: [
+            const _SectionLabel('Appearance'),
+            Card(
+              child: Column(
+                children: [
+                  ListTile(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    leading: const Icon(Icons.palette_outlined),
+                    title: const Text('Theme'),
+                    subtitle: Text(preset.label),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => _pickThemePreset(context, ref, preset),
+                  ),
+                  const Divider(height: 1, indent: 56),
+                  ListTile(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    enabled: preset.supportsLight,
+                    leading: const Icon(Icons.brightness_6_outlined),
+                    title: const Text('Theme mode'),
+                    subtitle: Text(
+                      preset.supportsLight
+                          ? themeModeLabel(storedMode)
+                          : 'Dark (fixed by Cyber Red)',
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: preset.supportsLight
+                        ? () => _pickThemeMode(context, ref, storedMode)
+                        : null,
+                  ),
+                ],
+              ),
+            ),
             const _SectionLabel('Preferences'),
             Card(
               child: ListTile(
@@ -103,13 +142,16 @@ class SettingsPage extends ConsumerWidget {
               ),
             ),
             const _SectionLabel('About'),
-            SectionCard(
-              title: 'Xzifra',
-              child: Text(
-                'Version 0.1.0\nA local-first expense tracker. All data stays on this device.',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+            Card(
+              child: ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
                 ),
+                leading: const Icon(Icons.info_outline),
+                title: const Text('About Xzifra'),
+                subtitle: const Text('Version, source code and licenses'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/settings/about'),
               ),
             ),
           ],
@@ -117,6 +159,89 @@ class SettingsPage extends ConsumerWidget {
       ),
     );
   }
+
+  Future<void> _pickThemePreset(
+    BuildContext context,
+    WidgetRef ref,
+    AppThemePreset current,
+  ) async {
+    final selected = await showModalBottomSheet<AppThemePreset>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Text(
+                'Theme',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            for (final preset in AppThemePreset.values)
+              _ThemePresetTile(
+                preset: preset,
+                selected: preset == current,
+                onTap: () => Navigator.of(context).pop(preset),
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (selected == null || selected == current) return;
+    await ref
+        .read(databaseProvider)
+        .setSetting('themePreset', selected.storageValue);
+  }
+
+  Future<void> _pickThemeMode(
+    BuildContext context,
+    WidgetRef ref,
+    ThemeMode current,
+  ) async {
+    final selected = await showModalBottomSheet<ThemeMode>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Text(
+                'Theme mode',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            for (final mode in const [
+              ThemeMode.system,
+              ThemeMode.light,
+              ThemeMode.dark,
+            ])
+              ListTile(
+                title: Text(themeModeLabel(mode)),
+                subtitle: Text(_themeModeDescription(mode)),
+                trailing: mode == current ? const Icon(Icons.check) : null,
+                onTap: () => Navigator.of(context).pop(mode),
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (selected == null || selected == current) return;
+    await ref
+        .read(databaseProvider)
+        .setSetting('themeMode', themeModeStorageValue(selected));
+  }
+
+  String _themeModeDescription(ThemeMode mode) => switch (mode) {
+    ThemeMode.system => 'Follow the device setting',
+    ThemeMode.light => 'Always use the light theme',
+    ThemeMode.dark => 'Always use the dark theme',
+  };
 
   Future<void> _pickDefaultCurrency(
     BuildContext context,
@@ -189,6 +314,56 @@ class SettingsPage extends ConsumerWidget {
         const SnackBar(content: Text('Could not import this backup.')),
       );
     }
+  }
+}
+
+class _ThemePresetTile extends StatelessWidget {
+  const _ThemePresetTile({
+    required this.preset,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final AppThemePreset preset;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: ListTile(
+        onTap: onTap,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Expanded(child: Text(preset.label)),
+            for (final color in preset.swatches)
+              Container(
+                width: 14,
+                height: 14,
+                margin: const EdgeInsets.only(left: 4),
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: scheme.outlineVariant),
+                ),
+              ),
+            if (selected)
+              Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: Icon(
+                  Icons.check_circle,
+                  size: 20,
+                  color: scheme.primary,
+                ),
+              ),
+          ],
+        ),
+        subtitle: Text(preset.description),
+      ),
+    );
   }
 }
 
