@@ -33,6 +33,7 @@
         <receiver
             android:name=".XzifraWidgetProvider"
             android:label="@string/xzifra_widget_label"
+            android:icon="@mipmap/ic_launcher"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>

@@ -70,17 +70,13 @@
             android:textSize="11sp" />
     </LinearLayout>
 
-    <TextView
+    <ImageView
         android:id="@+id/widget_add"
         android:layout_width="36dp"
         android:layout_height="36dp"
         android:layout_marginStart="6dp"
         android:background="@drawable/xzifra_widget_add_background"
         android:contentDescription="@string/xzifra_widget_add"
-        android:gravity="center"
-        android:includeFontPadding="false"
-        android:text="+"
-        android:textColor="#FFFFFF"
-        android:textSize="22sp"
-        android:textStyle="bold" />
+        android:padding="9dp"
+        android:src="@drawable/ic_widget_add" />
 </LinearLayout>

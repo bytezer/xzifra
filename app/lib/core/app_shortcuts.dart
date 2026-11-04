@@ -68,10 +68,12 @@ class AppShortcuts {
         ShortcutItem(
           type: AppShortcutAction.newExpense.type,
           localizedTitle: l10n.shortcutNewExpense,
+          icon: 'ic_shortcut_add',
         ),
         ShortcutItem(
           type: AppShortcutAction.reports.type,
           localizedTitle: l10n.shortcutReports,
+          icon: 'ic_shortcut_reports',
         ),
       ]);
     } catch (_) {
