@@ -7,6 +7,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'app.dart';
 import 'core/app_shortcuts.dart';
 import 'core/locale_settings.dart';
+import 'core/notifications.dart';
 import 'core/theme_settings.dart';
 import 'core/widget_data_sync.dart';
 import 'data/database.dart';
@@ -37,6 +38,14 @@ Future<void> main() async {
   // Read the launch shortcut before the first frame. Actions that arrive
   // before the router is mounted are kept pending by AppShortcuts.
   await AppShortcuts.initialize();
+
+  // Prepare local notifications and restore pending reminder schedules. Any
+  // notification tap that launched the app is kept pending until the router is
+  // mounted.
+  await NotificationService.instance.initialize();
+  if (preloaded != null) {
+    await NotificationService.instance.reschedulePending(preloaded);
+  }
 
   // Widget taps can arrive before or after the router mounts; WidgetDataSync
   // holds an early action until the first frame.

@@ -384,6 +384,8 @@ class SettingsPage extends ConsumerWidget {
               summary.expenses,
               summary.notes,
               summary.bookmarks,
+              summary.recurringExpenses,
+              summary.reminders,
             ),
           ),
         ),

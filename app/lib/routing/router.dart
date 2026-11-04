@@ -8,6 +8,9 @@ import '../features/expenses/expense_form_page.dart';
 import '../features/notes/note_editor_page.dart';
 import '../features/records/quick_capture.dart';
 import '../features/records/records_page.dart';
+import '../features/recurring/recurring_editor_page.dart';
+import '../features/recurring/recurring_page.dart';
+import '../features/reminders/reminder_editor_page.dart';
 import '../features/reports/reports_page.dart';
 import '../features/search/search_page.dart';
 import '../features/settings/about_page.dart';
@@ -117,6 +120,33 @@ final GoRouter appRouter = GoRouter(
           BookmarkEditorPage(bookmarkId: state.pathParameters['id']),
     ),
     GoRoute(
+      path: '/recurring',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const RecurringPage(),
+    ),
+    GoRoute(
+      path: '/recurring/new',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const RecurringEditorPage(),
+    ),
+    GoRoute(
+      path: '/recurring/:id/edit',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) =>
+          RecurringEditorPage(recurringId: state.pathParameters['id']),
+    ),
+    GoRoute(
+      path: '/reminders/new',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const ReminderEditorPage(),
+    ),
+    GoRoute(
+      path: '/reminders/:id/edit',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) =>
+          ReminderEditorPage(reminderId: state.pathParameters['id']),
+    ),
+    GoRoute(
       path: '/expenses/:id/edit',
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) =>
@@ -137,6 +167,7 @@ int _recordsTab(String? tab) {
   return switch (tab) {
     'notes' => 1,
     'bookmarks' => 2,
+    'reminders' => 3,
     _ => 0,
   };
 }

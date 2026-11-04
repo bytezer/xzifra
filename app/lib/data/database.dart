@@ -3,6 +3,7 @@ import 'package:drift_flutter/drift_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../domain/money.dart';
+import '../domain/recurrence.dart';
 import '../domain/reports.dart';
 
 part 'database.g.dart';
@@ -22,6 +23,10 @@ class Expenses extends Table {
   TextColumn get paymentMethodId =>
       text().nullable().references(PaymentMethods, #id)();
   TextColumn get note => text().nullable()();
+
+  /// Set when this expense was registered from a recurring rule. Kept as plain
+  /// text so deleting the rule never deletes the expense history.
+  TextColumn get recurringId => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
 
@@ -111,6 +116,56 @@ class Bookmarks extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+class RecurringExpenses extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text().withLength(min: 1, max: 100)();
+  IntColumn get amountCents => integer()();
+  TextColumn get currency => text().withLength(min: 3, max: 3)();
+  TextColumn get categoryId => text().references(Categories, #id)();
+  TextColumn get paymentMethodId =>
+      text().nullable().references(PaymentMethods, #id)();
+
+  /// One of daily, weekly, monthly or yearly.
+  TextColumn get frequency => text()();
+  IntColumn get interval => integer().withDefault(const Constant(1))();
+
+  /// Local calendar date as `YYYY-MM-DD`.
+  TextColumn get nextDate => text().withLength(min: 10, max: 10)();
+
+  /// Optional local calendar date as `YYYY-MM-DD`.
+  TextColumn get endDate => text().nullable()();
+  BoolColumn get active => boolean().withDefault(const Constant(true))();
+  TextColumn get note => text().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  @override
+  List<String> get customConstraints => const [
+    'CHECK (amount_cents > 0)',
+    'CHECK (interval >= 1)',
+    "CHECK (frequency IN ('daily', 'weekly', 'monthly', 'yearly'))",
+  ];
+}
+
+class Reminders extends Table {
+  TextColumn get id => text()();
+  TextColumn get title => text().withLength(min: 1, max: 200)();
+  TextColumn get note => text().nullable()();
+  DateTimeColumn get dueAt => dateTime()();
+  DateTimeColumn get doneAt => dateTime().nullable()();
+
+  /// Comma-separated tag list.
+  TextColumn get tags => text().withDefault(const Constant(''))();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 class SettingsEntries extends Table {
   TextColumn get key => text()();
   TextColumn get value => text()();
@@ -139,6 +194,8 @@ class ImportSummary {
     required this.templates,
     required this.notes,
     required this.bookmarks,
+    required this.recurringExpenses,
+    required this.reminders,
   });
 
   final int categories;
@@ -147,9 +204,18 @@ class ImportSummary {
   final int templates;
   final int notes;
   final int bookmarks;
+  final int recurringExpenses;
+  final int reminders;
 
   int get total =>
-      categories + paymentMethods + expenses + templates + notes + bookmarks;
+      categories +
+      paymentMethods +
+      expenses +
+      templates +
+      notes +
+      bookmarks +
+      recurringExpenses +
+      reminders;
 }
 
 @DriftDatabase(
@@ -160,6 +226,8 @@ class ImportSummary {
     Templates,
     Notes,
     Bookmarks,
+    RecurringExpenses,
+    Reminders,
     SettingsEntries,
   ],
 )
@@ -169,7 +237,7 @@ class AppDatabase extends _$AppDatabase {
   static const _uuid = Uuid();
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -188,6 +256,11 @@ class AppDatabase extends _$AppDatabase {
       if (from < 4) {
         await m.createTable(notes);
         await m.createTable(bookmarks);
+      }
+      if (from < 5) {
+        await m.createTable(recurringExpenses);
+        await m.createTable(reminders);
+        await m.addColumn(expenses, expenses.recurringId);
       }
     },
     beforeOpen: (details) async {
@@ -488,6 +561,49 @@ class AppDatabase extends _$AppDatabase {
     return (select(bookmarks)..where((t) => t.id.equals(id))).getSingleOrNull();
   }
 
+  Stream<List<RecurringExpense>> watchRecurringExpenses() {
+    return (select(
+      recurringExpenses,
+    )..orderBy([(t) => OrderingTerm.asc(t.nextDate)])).watch();
+  }
+
+  Stream<List<RecurringExpense>> watchActiveRecurringExpenses({int? limit}) {
+    final query = select(recurringExpenses)
+      ..where((t) => t.active.equals(true))
+      ..orderBy([(t) => OrderingTerm.asc(t.nextDate)]);
+    if (limit != null) query.limit(limit);
+    return query.watch();
+  }
+
+  Future<RecurringExpense?> getRecurringExpense(String id) {
+    return (select(
+      recurringExpenses,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+  }
+
+  Stream<List<Reminder>> watchReminders() {
+    return (select(
+      reminders,
+    )..orderBy([(t) => OrderingTerm.asc(t.dueAt)])).watch();
+  }
+
+  Future<Reminder?> getReminder(String id) {
+    return (select(reminders)..where((t) => t.id.equals(id))).getSingleOrNull();
+  }
+
+  Future<List<Reminder>> pendingReminders() {
+    return (select(reminders)
+          ..where((t) => t.doneAt.isNull())
+          ..orderBy([(t) => OrderingTerm.asc(t.dueAt)]))
+        .get();
+  }
+
+  Future<int> countReminders() async {
+    final count = reminders.id.count();
+    final row = await (selectOnly(reminders)..addColumns([count])).getSingle();
+    return row.read(count) ?? 0;
+  }
+
   /// Case-insensitive [LIKE] search across notes, bookmarks and expenses.
   ///
   /// Archived records are intentionally excluded from global search.
@@ -575,6 +691,7 @@ class AppDatabase extends _$AppDatabase {
     required String categoryId,
     String? paymentMethodId,
     String? note,
+    String? recurringId,
   }) async {
     final now = DateTime.now();
     await into(expenses).insert(
@@ -586,6 +703,7 @@ class AppDatabase extends _$AppDatabase {
         categoryId: categoryId,
         paymentMethodId: Value(paymentMethodId),
         note: Value(note),
+        recurringId: Value(recurringId),
         createdAt: now,
         updatedAt: now,
       ),
@@ -705,6 +823,16 @@ class AppDatabase extends _$AppDatabase {
     return row.read(count) ?? 0;
   }
 
+  Future<int> countRecurringForCategory(String id) async {
+    final count = recurringExpenses.id.count();
+    final row =
+        await (selectOnly(recurringExpenses)
+              ..addColumns([count])
+              ..where(recurringExpenses.categoryId.equals(id)))
+            .getSingle();
+    return row.read(count) ?? 0;
+  }
+
   Future<void> deleteCategory(String id) async {
     final expenseCount = await countExpensesForCategory(id);
     if (expenseCount > 0) {
@@ -716,6 +844,12 @@ class AppDatabase extends _$AppDatabase {
     if (templateCount > 0) {
       throw StateError(
         'Category has $templateCount templates; archive it instead.',
+      );
+    }
+    final recurringCount = await countRecurringForCategory(id);
+    if (recurringCount > 0) {
+      throw StateError(
+        'Category has $recurringCount recurring rules; archive it instead.',
       );
     }
     await (delete(categories)..where((t) => t.id.equals(id))).go();
@@ -802,6 +936,16 @@ class AppDatabase extends _$AppDatabase {
     return row.read(count) ?? 0;
   }
 
+  Future<int> countRecurringForPaymentMethod(String id) async {
+    final count = recurringExpenses.id.count();
+    final row =
+        await (selectOnly(recurringExpenses)
+              ..addColumns([count])
+              ..where(recurringExpenses.paymentMethodId.equals(id)))
+            .getSingle();
+    return row.read(count) ?? 0;
+  }
+
   Future<void> deletePaymentMethod(String id) async {
     final expenseCount = await countExpensesForPaymentMethod(id);
     if (expenseCount > 0) {
@@ -813,6 +957,12 @@ class AppDatabase extends _$AppDatabase {
     if (templateCount > 0) {
       throw StateError(
         'Payment method has $templateCount templates; archive it.',
+      );
+    }
+    final recurringCount = await countRecurringForPaymentMethod(id);
+    if (recurringCount > 0) {
+      throw StateError(
+        'Payment method has $recurringCount recurring rules; archive it.',
       );
     }
     await (delete(paymentMethods)..where((t) => t.id.equals(id))).go();
@@ -1028,6 +1178,205 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // ---------------------------------------------------------------------------
+  // Recurring expense mutations
+  // ---------------------------------------------------------------------------
+
+  Future<void> addRecurringExpense({
+    required String name,
+    required int amountCents,
+    required String currency,
+    required String categoryId,
+    String? paymentMethodId,
+    required RecurringFrequency frequency,
+    required int interval,
+    required String nextDate,
+    String? endDate,
+    bool active = true,
+    String? note,
+  }) async {
+    final now = DateTime.now();
+    await into(recurringExpenses).insert(
+      RecurringExpensesCompanion.insert(
+        id: _uuid.v4(),
+        name: name,
+        amountCents: amountCents,
+        currency: currency,
+        categoryId: categoryId,
+        paymentMethodId: Value(paymentMethodId),
+        frequency: frequency.storageValue,
+        interval: Value(interval),
+        nextDate: nextDate,
+        endDate: Value(endDate),
+        active: Value(active),
+        note: Value(note),
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+  }
+
+  Future<void> updateRecurringExpense(
+    String id, {
+    required String name,
+    required int amountCents,
+    required String currency,
+    required String categoryId,
+    String? paymentMethodId,
+    required RecurringFrequency frequency,
+    required int interval,
+    required String nextDate,
+    String? endDate,
+    required bool active,
+    String? note,
+  }) async {
+    await (update(recurringExpenses)..where((t) => t.id.equals(id))).write(
+      RecurringExpensesCompanion(
+        name: Value(name),
+        amountCents: Value(amountCents),
+        currency: Value(currency),
+        categoryId: Value(categoryId),
+        paymentMethodId: Value(paymentMethodId),
+        frequency: Value(frequency.storageValue),
+        interval: Value(interval),
+        nextDate: Value(nextDate),
+        endDate: Value(endDate),
+        active: Value(active),
+        note: Value(note),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  Future<void> setRecurringActive(String id, {required bool active}) {
+    return (update(recurringExpenses)..where((t) => t.id.equals(id))).write(
+      RecurringExpensesCompanion(
+        active: Value(active),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  Future<void> deleteRecurringExpense(String id) async {
+    await (delete(recurringExpenses)..where((t) => t.id.equals(id))).go();
+  }
+
+  /// Creates one expense from [id] using its current next date and advances the
+  /// rule by exactly one occurrence. Overdue rules remain due until caught up.
+  Future<void> registerRecurringExpense(String id) async {
+    await transaction(() async {
+      final rule = await getRecurringExpense(id);
+      if (rule == null) return;
+      if (!isRecurringDue(
+        active: rule.active,
+        nextDate: rule.nextDate,
+        endDate: rule.endDate,
+        today: DateTime.now(),
+      )) {
+        return;
+      }
+
+      await addExpense(
+        amountCents: rule.amountCents,
+        currency: rule.currency,
+        date: rule.nextDate,
+        categoryId: rule.categoryId,
+        paymentMethodId: rule.paymentMethodId,
+        note: rule.note,
+        recurringId: rule.id,
+      );
+
+      final frequency =
+          RecurringFrequency.parse(rule.frequency) ??
+          RecurringFrequency.monthly;
+      await (update(recurringExpenses)..where((t) => t.id.equals(id))).write(
+        RecurringExpensesCompanion(
+          nextDate: Value(nextDateKey(rule.nextDate, frequency, rule.interval)),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+    });
+  }
+
+  /// Advances a rule without creating an expense.
+  Future<void> skipRecurringExpense(String id) async {
+    final rule = await getRecurringExpense(id);
+    if (rule == null) return;
+    if (!isRecurringDue(
+      active: rule.active,
+      nextDate: rule.nextDate,
+      endDate: rule.endDate,
+      today: DateTime.now(),
+    )) {
+      return;
+    }
+    final frequency =
+        RecurringFrequency.parse(rule.frequency) ?? RecurringFrequency.monthly;
+    await (update(recurringExpenses)..where((t) => t.id.equals(id))).write(
+      RecurringExpensesCompanion(
+        nextDate: Value(nextDateKey(rule.nextDate, frequency, rule.interval)),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Reminder mutations
+  // ---------------------------------------------------------------------------
+
+  Future<String> addReminder({
+    required String title,
+    String? note,
+    required DateTime dueAt,
+    required String tags,
+  }) async {
+    final now = DateTime.now();
+    final id = _uuid.v4();
+    await into(reminders).insert(
+      RemindersCompanion.insert(
+        id: id,
+        title: title,
+        note: Value(note),
+        dueAt: dueAt,
+        tags: Value(tags),
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    return id;
+  }
+
+  Future<void> updateReminder(
+    String id, {
+    required String title,
+    String? note,
+    required DateTime dueAt,
+    required String tags,
+  }) async {
+    await (update(reminders)..where((t) => t.id.equals(id))).write(
+      RemindersCompanion(
+        title: Value(title),
+        note: Value(note),
+        dueAt: Value(dueAt),
+        tags: Value(tags),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  Future<void> setReminderDone(String id, {required bool done}) {
+    return (update(reminders)..where((t) => t.id.equals(id))).write(
+      RemindersCompanion(
+        doneAt: Value(done ? DateTime.now() : null),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  Future<void> deleteReminder(String id) async {
+    await (delete(reminders)..where((t) => t.id.equals(id))).go();
+  }
+
+  // ---------------------------------------------------------------------------
   // Settings
   // ---------------------------------------------------------------------------
 
@@ -1048,6 +1397,8 @@ class AppDatabase extends _$AppDatabase {
     final templateRows = await select(templates).get();
     final noteRows = await select(notes).get();
     final bookmarkRows = await select(bookmarks).get();
+    final recurringRows = await select(recurringExpenses).get();
+    final reminderRows = await select(reminders).get();
     final settingRows = await select(settingsEntries).get();
 
     return {
@@ -1086,6 +1437,7 @@ class AppDatabase extends _$AppDatabase {
             'categoryId': row.categoryId,
             'paymentMethodId': row.paymentMethodId,
             'note': row.note,
+            'recurringId': row.recurringId,
             'createdAt': row.createdAt.toUtc().toIso8601String(),
             'updatedAt': row.updatedAt.toUtc().toIso8601String(),
           },
@@ -1134,6 +1486,38 @@ class AppDatabase extends _$AppDatabase {
             'updatedAt': row.updatedAt.toUtc().toIso8601String(),
           },
       ],
+      'recurringExpenses': [
+        for (final row in recurringRows)
+          {
+            'id': row.id,
+            'name': row.name,
+            'amountCents': row.amountCents,
+            'currency': row.currency,
+            'categoryId': row.categoryId,
+            'paymentMethodId': row.paymentMethodId,
+            'frequency': row.frequency,
+            'interval': row.interval,
+            'nextDate': row.nextDate,
+            'endDate': row.endDate,
+            'active': row.active,
+            'note': row.note,
+            'createdAt': row.createdAt.toUtc().toIso8601String(),
+            'updatedAt': row.updatedAt.toUtc().toIso8601String(),
+          },
+      ],
+      'reminders': [
+        for (final row in reminderRows)
+          {
+            'id': row.id,
+            'title': row.title,
+            'note': row.note,
+            'dueAt': row.dueAt.toUtc().toIso8601String(),
+            'doneAt': row.doneAt?.toUtc().toIso8601String(),
+            'tags': row.tags,
+            'createdAt': row.createdAt.toUtc().toIso8601String(),
+            'updatedAt': row.updatedAt.toUtc().toIso8601String(),
+          },
+      ],
     };
   }
 
@@ -1149,8 +1533,12 @@ class AppDatabase extends _$AppDatabase {
     final templateList = (json['templates'] as List?) ?? const [];
     final noteList = (json['notes'] as List?) ?? const [];
     final bookmarkList = (json['bookmarks'] as List?) ?? const [];
+    final recurringList = (json['recurringExpenses'] as List?) ?? const [];
+    final reminderList = (json['reminders'] as List?) ?? const [];
     final settingList = (json['settings'] as List?) ?? const [];
     var importedTemplates = 0;
+    var importedRecurring = 0;
+    var importedReminders = 0;
 
     await transaction(() async {
       for (final raw in categoryList) {
@@ -1224,9 +1612,61 @@ class AppDatabase extends _$AppDatabase {
         importedTemplates++;
       }
 
+      // Recurring rules are imported before expenses so a valid recurringId
+      // can be resolved; broken rules are skipped without failing the backup.
+      final recurringIds = <String>{};
+      for (final raw in recurringList) {
+        final map = Map<String, dynamic>.from(raw as Map);
+        final id = map['id'] as String?;
+        final categoryId = map['categoryId'] as String?;
+        if (id == null ||
+            categoryId == null ||
+            !categoryIds.contains(categoryId)) {
+          continue;
+        }
+        final paymentMethodId = map['paymentMethodId'] as String?;
+        if (paymentMethodId != null && !methodIds.contains(paymentMethodId)) {
+          continue;
+        }
+        final currency = map['currency'] as String?;
+        if (currency == null || !Money.supportedCurrencies.contains(currency)) {
+          continue;
+        }
+        final frequency = RecurringFrequency.parse(map['frequency'] as String?);
+        if (frequency == null) continue;
+        final next = parseDateKey(map['nextDate'] as String?);
+        if (next == null) continue;
+        final interval = map['interval'] as int? ?? 1;
+        if (interval < 1) continue;
+        final endDate = map['endDate'] as String?;
+
+        await into(recurringExpenses).insert(
+          RecurringExpensesCompanion.insert(
+            id: id,
+            name: map['name'] as String,
+            amountCents: map['amountCents'] as int,
+            currency: currency,
+            categoryId: categoryId,
+            paymentMethodId: Value(paymentMethodId),
+            frequency: frequency.storageValue,
+            interval: Value(interval),
+            nextDate: map['nextDate'] as String,
+            endDate: Value(endDate),
+            active: Value(map['active'] as bool? ?? true),
+            note: Value(map['note'] as String?),
+            createdAt: _parseDate(map['createdAt']) ?? DateTime.now(),
+            updatedAt: _parseDate(map['updatedAt']) ?? DateTime.now(),
+          ),
+          mode: InsertMode.insertOrIgnore,
+        );
+        recurringIds.add(id);
+        importedRecurring++;
+      }
+
       for (final raw in expenseList) {
         final map = Map<String, dynamic>.from(raw as Map);
         final createdAt = _parseDate(map['createdAt']) ?? DateTime.now();
+        final recurringId = map['recurringId'] as String?;
         await into(expenses).insert(
           ExpensesCompanion.insert(
             id: map['id'] as String,
@@ -1236,6 +1676,11 @@ class AppDatabase extends _$AppDatabase {
             categoryId: map['categoryId'] as String,
             paymentMethodId: Value(map['paymentMethodId'] as String?),
             note: Value(map['note'] as String?),
+            recurringId: Value(
+              recurringId != null && recurringIds.contains(recurringId)
+                  ? recurringId
+                  : null,
+            ),
             createdAt: createdAt,
             updatedAt: _parseDate(map['updatedAt']) ?? createdAt,
           ),
@@ -1279,6 +1724,27 @@ class AppDatabase extends _$AppDatabase {
         );
       }
 
+      for (final raw in reminderList) {
+        final map = Map<String, dynamic>.from(raw as Map);
+        final dueAt = _parseDate(map['dueAt']);
+        if (dueAt == null) continue;
+        final createdAt = _parseDate(map['createdAt']) ?? DateTime.now();
+        await into(reminders).insert(
+          RemindersCompanion.insert(
+            id: map['id'] as String,
+            title: map['title'] as String,
+            note: Value(map['note'] as String?),
+            dueAt: dueAt,
+            doneAt: Value(_parseDate(map['doneAt'])),
+            tags: Value(map['tags'] as String? ?? ''),
+            createdAt: createdAt,
+            updatedAt: _parseDate(map['updatedAt']) ?? createdAt,
+          ),
+          mode: InsertMode.insertOrIgnore,
+        );
+        importedReminders++;
+      }
+
       for (final raw in settingList) {
         final map = Map<String, dynamic>.from(raw as Map);
         await into(settingsEntries).insert(
@@ -1298,6 +1764,8 @@ class AppDatabase extends _$AppDatabase {
       templates: importedTemplates,
       notes: noteList.length,
       bookmarks: bookmarkList.length,
+      recurringExpenses: importedRecurring,
+      reminders: importedReminders,
     );
   }
 

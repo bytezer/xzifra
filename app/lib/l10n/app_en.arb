@@ -42,6 +42,7 @@
   "quickAddExpense": "Expense",
   "quickAddNote": "Note",
   "quickAddBookmark": "Bookmark",
+  "quickAddReminder": "Reminder",
 
   "tagsLabel": "Tags",
   "tagsHint": "Separate tags with commas",
@@ -250,7 +251,7 @@
   "settingsAboutSubtitle": "Version, source code and licenses",
   "settingsExportError": "Could not export the backup.",
   "settingsCsvError": "Could not export the CSV.",
-  "settingsImportProcessed": "Processed {total} records ({expenses} expenses, {notes} notes, {bookmarks} bookmarks).",
+  "settingsImportProcessed": "Processed {total} records ({expenses} expenses, {notes} notes, {bookmarks} bookmarks, {recurring} recurring, {reminders} reminders).",
   "@settingsImportProcessed": {
     "placeholders": {
       "total": {
@@ -263,6 +264,12 @@
         "type": "int"
       },
       "bookmarks": {
+        "type": "int"
+      },
+      "recurring": {
+        "type": "int"
+      },
+      "reminders": {
         "type": "int"
       }
     }
@@ -315,6 +322,17 @@
       }
     }
   },
+  "categoriesArchiveRecurringMessage": "{count, plural, =1{\"{name}\" is used by 1 recurring expense. Archiving keeps your recurring rules intact.} other{\"{name}\" is used by {count} recurring expenses. Archiving keeps your recurring rules intact.}}",
+  "@categoriesArchiveRecurringMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
 
   "paymentMethodsTitle": "Payment methods",
   "paymentMethodsNewTitle": "New payment method",
@@ -346,6 +364,17 @@
   "paymentMethodsEmptyMessage": "Add cash, cards or wallets to track how you pay.",
   "paymentMethodsArchiveTemplatesMessage": "{count, plural, =1{\"{name}\" is used by 1 template. Archiving keeps your templates intact.} other{\"{name}\" is used by {count} templates. Archiving keeps your templates intact.}}",
   "@paymentMethodsArchiveTemplatesMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "paymentMethodsArchiveRecurringMessage": "{count, plural, =1{\"{name}\" is used by 1 recurring expense. Archiving keeps your recurring rules intact.} other{\"{name}\" is used by {count} recurring expenses. Archiving keeps your recurring rules intact.}}",
+  "@paymentMethodsArchiveRecurringMessage": {
     "placeholders": {
       "name": {
         "type": "String"
@@ -387,6 +416,123 @@
       }
     }
   },
+
+  "recurringTitle": "Recurring",
+  "recurringNewTitle": "New recurring expense",
+  "recurringEditTitle": "Edit recurring expense",
+  "recurringEmptyTitle": "No recurring expenses yet",
+  "recurringEmptyMessage": "Set up rent, subscriptions or other regular payments.",
+  "recurringName": "Name",
+  "recurringNameError": "Enter a name.",
+  "recurringAmount": "Amount",
+  "recurringCurrency": "Currency",
+  "recurringCategory": "Category",
+  "recurringPaymentMethod": "Payment method",
+  "recurringFrequency": "Frequency",
+  "recurringInterval": "Repeat every",
+  "recurringIntervalError": "Enter an interval of at least 1.",
+  "recurringNextDate": "Next date",
+  "recurringEndDate": "End date (optional)",
+  "recurringNoEndDate": "No end date",
+  "recurringNote": "Note",
+  "recurringActive": "Active",
+  "recurringDueNow": "Due now",
+  "recurringPaused": "Paused",
+  "recurringPause": "Pause",
+  "recurringResume": "Resume",
+  "recurringRegister": "Register",
+  "recurringSkip": "Skip",
+  "recurringRegistered": "Expense registered for {name}.",
+  "@recurringRegistered": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "recurringSkipped": "Skipped {name}.",
+  "@recurringSkipped": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "recurringDeleteTitle": "Delete recurring expense?",
+  "recurringDeleteMessage": "Delete \"{name}\"? Past expenses are kept.",
+  "@recurringDeleteMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "recurringSaveError": "Could not save the recurring expense.",
+  "recurringNotFound": "Recurring expense not found.",
+  "recurringLoadError": "Could not load this recurring expense.",
+  "recurringFrequencyDaily": "Daily",
+  "recurringFrequencyWeekly": "Weekly",
+  "recurringFrequencyMonthly": "Monthly",
+  "recurringFrequencyYearly": "Yearly",
+  "recurringEveryInterval": "Every {count} · {frequency}",
+  "@recurringEveryInterval": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "frequency": {
+        "type": "String"
+      }
+    }
+  },
+  "recurringNextLabel": "Next: {date}",
+  "@recurringNextLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "recurringEndDateError": "The end date must be on or after the next date.",
+
+  "remindersTitle": "Reminders",
+  "remindersEmptyTitle": "No reminders yet",
+  "remindersEmptyMessage": "Add a reminder and get a local notification when it is due.",
+  "remindersNewTitle": "New reminder",
+  "remindersEditTitle": "Edit reminder",
+  "remindersNotFound": "Reminder not found.",
+  "remindersLoadError": "Could not load this reminder.",
+  "remindersTitleLabel": "Title",
+  "remindersNoteLabel": "Note",
+  "remindersDue": "Due date and time",
+  "remindersTitleError": "Enter a title.",
+  "remindersSaveError": "Could not save the reminder.",
+  "remindersDeleted": "Reminder deleted.",
+  "remindersDeleteTitle": "Delete reminder?",
+  "remindersDeleteMessage": "Delete \"{title}\"? This cannot be undone.",
+  "@remindersDeleteMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "remindersMarkDone": "Mark as done",
+  "remindersMarkUndone": "Mark as not done",
+  "remindersOverdue": "Overdue",
+  "remindersToday": "Today",
+  "remindersUpcoming": "Upcoming",
+  "remindersDone": "Done",
+  "remindersNoMatchesTitle": "No matches",
+  "remindersNoMatchesMessage": "Try a different tag.",
+  "remindersNotificationsDenied": "Reminder saved. Notifications are off, so you won't get an alert.",
+
+  "dashboardUpcomingPayments": "Upcoming payments",
+  "dashboardNoUpcomingPaymentsTitle": "No upcoming payments",
+  "dashboardNoUpcomingPaymentsMessage": "Add a recurring expense to see it here.",
+  "dashboardUpcomingReminders": "Upcoming reminders",
+  "dashboardNoUpcomingRemindersTitle": "No upcoming reminders",
+  "dashboardNoUpcomingRemindersMessage": "Add a reminder to see it here.",
 
   "aboutTitle": "About",
   "aboutTagline": "A local-first expense tracker for Android.",

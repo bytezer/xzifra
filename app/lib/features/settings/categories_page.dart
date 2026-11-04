@@ -257,15 +257,20 @@ class CategoriesPage extends ConsumerWidget {
   ) async {
     final expenseCount = await database.countExpensesForCategory(category.id);
     final templateCount = await database.countTemplatesForCategory(category.id);
+    final recurringCount = await database.countRecurringForCategory(
+      category.id,
+    );
     if (!context.mounted) return;
     final l10n = context.l10n;
 
-    if (expenseCount > 0 || templateCount > 0) {
+    if (expenseCount > 0 || templateCount > 0 || recurringCount > 0) {
       final message = expenseCount > 0
           ? l10n.categoriesArchiveDialogMessage(category.name, expenseCount)
-          : l10n.categoriesArchiveTemplatesMessage(
+          : templateCount > 0
+          ? l10n.categoriesArchiveTemplatesMessage(category.name, templateCount)
+          : l10n.categoriesArchiveRecurringMessage(
               category.name,
-              templateCount,
+              recurringCount,
             );
       final archive = await showDialog<bool>(
         context: context,

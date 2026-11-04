@@ -88,6 +88,32 @@ final bookmarkByIdProvider = FutureProvider.family<Bookmark?, String>((
   return ref.watch(databaseProvider).getBookmark(id);
 });
 
+final recurringExpensesProvider = StreamProvider<List<RecurringExpense>>((ref) {
+  return ref.watch(databaseProvider).watchRecurringExpenses();
+});
+
+final activeRecurringExpensesProvider = StreamProvider<List<RecurringExpense>>((
+  ref,
+) {
+  return ref.watch(databaseProvider).watchActiveRecurringExpenses();
+});
+
+final recurringExpenseByIdProvider =
+    FutureProvider.family<RecurringExpense?, String>((ref, id) {
+      return ref.watch(databaseProvider).getRecurringExpense(id);
+    });
+
+final remindersProvider = StreamProvider<List<Reminder>>((ref) {
+  return ref.watch(databaseProvider).watchReminders();
+});
+
+final reminderByIdProvider = FutureProvider.family<Reminder?, String>((
+  ref,
+  id,
+) {
+  return ref.watch(databaseProvider).getReminder(id);
+});
+
 final monthExpensesProvider =
     StreamProvider.family<List<ExpenseView>, ExpenseQuery>((ref, query) {
       return ref

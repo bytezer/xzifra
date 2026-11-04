@@ -67,7 +67,16 @@ class _ExpensesTabState extends ConsumerState<ExpensesTab> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
             child: Column(
               children: [
-                const MonthSelector(alignStart: true),
+                Row(
+                  children: [
+                    const Expanded(child: MonthSelector(alignStart: true)),
+                    IconButton(
+                      onPressed: () => context.push('/recurring'),
+                      tooltip: context.l10n.recurringTitle,
+                      icon: const Icon(Icons.event_repeat),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 4),
                 Row(
                   children: [

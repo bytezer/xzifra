@@ -38,7 +38,7 @@ void main() {
     await _settle(tester);
 
     expect(find.text('Spent this month'), findsOneWidget);
-    expect(find.text('No expenses this month'), findsOneWidget);
+    expect(find.text('No upcoming payments'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
     await tester.tap(find.byType(FloatingActionButton));

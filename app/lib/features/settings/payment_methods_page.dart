@@ -213,15 +213,23 @@ class PaymentMethodsPage extends ConsumerWidget {
     final templateCount = await database.countTemplatesForPaymentMethod(
       method.id,
     );
+    final recurringCount = await database.countRecurringForPaymentMethod(
+      method.id,
+    );
     if (!context.mounted) return;
     final l10n = context.l10n;
 
-    if (expenseCount > 0 || templateCount > 0) {
+    if (expenseCount > 0 || templateCount > 0 || recurringCount > 0) {
       final message = expenseCount > 0
           ? l10n.paymentMethodsArchiveDialogMessage(method.name, expenseCount)
-          : l10n.paymentMethodsArchiveTemplatesMessage(
+          : templateCount > 0
+          ? l10n.paymentMethodsArchiveTemplatesMessage(
               method.name,
               templateCount,
+            )
+          : l10n.paymentMethodsArchiveRecurringMessage(
+              method.name,
+              recurringCount,
             );
       final archive = await showDialog<bool>(
         context: context,

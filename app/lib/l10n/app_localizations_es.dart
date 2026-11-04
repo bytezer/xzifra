@@ -115,6 +115,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get quickAddBookmark => 'Marcador';
 
   @override
+  String get quickAddReminder => 'Recordatorio';
+
+  @override
   String get tagsLabel => 'Etiquetas';
 
   @override
@@ -636,8 +639,10 @@ class AppLocalizationsEs extends AppLocalizations {
     int expenses,
     int notes,
     int bookmarks,
+    int recurring,
+    int reminders,
   ) {
-    return 'Se procesaron $total registros ($expenses gastos, $notes notas, $bookmarks marcadores).';
+    return 'Se procesaron $total registros ($expenses gastos, $notes notas, $bookmarks marcadores, $recurring recurrentes, $reminders recordatorios).';
   }
 
   @override
@@ -722,6 +727,19 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String categoriesArchiveRecurringMessage(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '\"$name\" se usa en $count gastos recurrentes. Archivar conserva tus reglas intactas.',
+      one:
+          '\"$name\" se usa en 1 gasto recurrente. Archivar conserva tus reglas intactas.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get paymentMethodsTitle => 'Medios de pago';
 
   @override
@@ -775,6 +793,19 @@ class AppLocalizationsEs extends AppLocalizations {
           '\"$name\" se usa en $count plantillas. Archivar conserva tus plantillas intactas.',
       one:
           '\"$name\" se usa en 1 plantilla. Archivar conserva tus plantillas intactas.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String paymentMethodsArchiveRecurringMessage(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '\"$name\" se usa en $count gastos recurrentes. Archivar conserva tus reglas intactas.',
+      one:
+          '\"$name\" se usa en 1 gasto recurrente. Archivar conserva tus reglas intactas.',
     );
     return '$_temp0';
   }
@@ -855,6 +886,232 @@ class AppLocalizationsEs extends AppLocalizations {
   String templatesDeleteDialogMessage(String name) {
     return '¿Eliminar \"$name\"? Esta acción no se puede deshacer.';
   }
+
+  @override
+  String get recurringTitle => 'Recurrentes';
+
+  @override
+  String get recurringNewTitle => 'Nuevo gasto recurrente';
+
+  @override
+  String get recurringEditTitle => 'Editar gasto recurrente';
+
+  @override
+  String get recurringEmptyTitle => 'Aún no hay gastos recurrentes';
+
+  @override
+  String get recurringEmptyMessage =>
+      'Configura el alquiler, suscripciones u otros pagos regulares.';
+
+  @override
+  String get recurringName => 'Nombre';
+
+  @override
+  String get recurringNameError => 'Escribe un nombre.';
+
+  @override
+  String get recurringAmount => 'Monto';
+
+  @override
+  String get recurringCurrency => 'Moneda';
+
+  @override
+  String get recurringCategory => 'Categoría';
+
+  @override
+  String get recurringPaymentMethod => 'Medio de pago';
+
+  @override
+  String get recurringFrequency => 'Frecuencia';
+
+  @override
+  String get recurringInterval => 'Repetir cada';
+
+  @override
+  String get recurringIntervalError => 'Ingresa un intervalo de al menos 1.';
+
+  @override
+  String get recurringNextDate => 'Próxima fecha';
+
+  @override
+  String get recurringEndDate => 'Fecha de fin (opcional)';
+
+  @override
+  String get recurringNoEndDate => 'Sin fecha de fin';
+
+  @override
+  String get recurringNote => 'Nota';
+
+  @override
+  String get recurringActive => 'Activo';
+
+  @override
+  String get recurringDueNow => 'Vence ahora';
+
+  @override
+  String get recurringPaused => 'En pausa';
+
+  @override
+  String get recurringPause => 'Pausar';
+
+  @override
+  String get recurringResume => 'Reanudar';
+
+  @override
+  String get recurringRegister => 'Registrar';
+
+  @override
+  String get recurringSkip => 'Omitir';
+
+  @override
+  String recurringRegistered(String name) {
+    return 'Gasto de $name registrado.';
+  }
+
+  @override
+  String recurringSkipped(String name) {
+    return 'Se omitió $name.';
+  }
+
+  @override
+  String get recurringDeleteTitle => '¿Eliminar gasto recurrente?';
+
+  @override
+  String recurringDeleteMessage(String name) {
+    return '¿Eliminar \"$name\"? Los gastos anteriores se conservan.';
+  }
+
+  @override
+  String get recurringSaveError => 'No se pudo guardar el gasto recurrente.';
+
+  @override
+  String get recurringNotFound => 'No se encontró el gasto recurrente.';
+
+  @override
+  String get recurringLoadError => 'No se pudo cargar el gasto recurrente.';
+
+  @override
+  String get recurringFrequencyDaily => 'Diario';
+
+  @override
+  String get recurringFrequencyWeekly => 'Semanal';
+
+  @override
+  String get recurringFrequencyMonthly => 'Mensual';
+
+  @override
+  String get recurringFrequencyYearly => 'Anual';
+
+  @override
+  String recurringEveryInterval(int count, String frequency) {
+    return 'Cada $count · $frequency';
+  }
+
+  @override
+  String recurringNextLabel(String date) {
+    return 'Próximo: $date';
+  }
+
+  @override
+  String get recurringEndDateError =>
+      'La fecha de fin debe ser igual o posterior a la próxima fecha.';
+
+  @override
+  String get remindersTitle => 'Recordatorios';
+
+  @override
+  String get remindersEmptyTitle => 'Aún no hay recordatorios';
+
+  @override
+  String get remindersEmptyMessage =>
+      'Agrega un recordatorio y recibe una notificación local cuando venza.';
+
+  @override
+  String get remindersNewTitle => 'Nuevo recordatorio';
+
+  @override
+  String get remindersEditTitle => 'Editar recordatorio';
+
+  @override
+  String get remindersNotFound => 'No se encontró el recordatorio.';
+
+  @override
+  String get remindersLoadError => 'No se pudo cargar el recordatorio.';
+
+  @override
+  String get remindersTitleLabel => 'Título';
+
+  @override
+  String get remindersNoteLabel => 'Nota';
+
+  @override
+  String get remindersDue => 'Fecha y hora de vencimiento';
+
+  @override
+  String get remindersTitleError => 'Escribe un título.';
+
+  @override
+  String get remindersSaveError => 'No se pudo guardar el recordatorio.';
+
+  @override
+  String get remindersDeleted => 'Recordatorio eliminado.';
+
+  @override
+  String get remindersDeleteTitle => '¿Eliminar recordatorio?';
+
+  @override
+  String remindersDeleteMessage(String title) {
+    return '¿Eliminar \"$title\"? Esto no se puede deshacer.';
+  }
+
+  @override
+  String get remindersMarkDone => 'Marcar como hecho';
+
+  @override
+  String get remindersMarkUndone => 'Marcar como pendiente';
+
+  @override
+  String get remindersOverdue => 'Vencidos';
+
+  @override
+  String get remindersToday => 'Hoy';
+
+  @override
+  String get remindersUpcoming => 'Próximos';
+
+  @override
+  String get remindersDone => 'Hechos';
+
+  @override
+  String get remindersNoMatchesTitle => 'Sin resultados';
+
+  @override
+  String get remindersNoMatchesMessage => 'Prueba con otra etiqueta.';
+
+  @override
+  String get remindersNotificationsDenied =>
+      'Recordatorio guardado. Las notificaciones están desactivadas, así que no recibirás un aviso.';
+
+  @override
+  String get dashboardUpcomingPayments => 'Próximos pagos';
+
+  @override
+  String get dashboardNoUpcomingPaymentsTitle => 'No hay próximos pagos';
+
+  @override
+  String get dashboardNoUpcomingPaymentsMessage =>
+      'Agrega un gasto recurrente para verlo aquí.';
+
+  @override
+  String get dashboardUpcomingReminders => 'Próximos recordatorios';
+
+  @override
+  String get dashboardNoUpcomingRemindersTitle =>
+      'No hay próximos recordatorios';
+
+  @override
+  String get dashboardNoUpcomingRemindersMessage =>
+      'Agrega un recordatorio para verlo aquí.';
 
   @override
   String get aboutTitle => 'Acerca de';

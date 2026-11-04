@@ -5,12 +5,14 @@ import '../../core/l10n.dart';
 import '../bookmarks/bookmarks_tab.dart';
 import '../expenses/expenses_page.dart';
 import '../notes/notes_tab.dart';
+import '../reminders/reminders_tab.dart';
 
-/// The four-record hub: expenses, notes and bookmarks under one destination.
+/// The record hub: expenses, notes, bookmarks and reminders under one
+/// destination.
 class RecordsPage extends StatefulWidget {
   const RecordsPage({super.key, this.initialTab = 0});
 
-  /// 0 = expenses, 1 = notes, 2 = bookmarks.
+  /// 0 = expenses, 1 = notes, 2 = bookmarks, 3 = reminders.
   final int initialTab;
 
   @override
@@ -21,7 +23,7 @@ class _RecordsPageState extends State<RecordsPage>
     with SingleTickerProviderStateMixin {
   late final TabController _controller;
 
-  static const _tabCount = 3;
+  static const _tabCount = 4;
 
   @override
   void initState() {
@@ -63,16 +65,24 @@ class _RecordsPageState extends State<RecordsPage>
         ],
         bottom: TabBar(
           controller: _controller,
+          isScrollable: true,
+          tabAlignment: TabAlignment.start,
           tabs: [
             Tab(text: l10n.expensesTitle),
             Tab(text: l10n.notesTitle),
             Tab(text: l10n.bookmarksTitle),
+            Tab(text: l10n.remindersTitle),
           ],
         ),
       ),
       body: TabBarView(
         controller: _controller,
-        children: const [ExpensesTab(), NotesTab(), BookmarksTab()],
+        children: const [
+          ExpensesTab(),
+          NotesTab(),
+          BookmarksTab(),
+          RemindersTab(),
+        ],
       ),
     );
   }

@@ -3,6 +3,8 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite;
 import 'package:xzifra/data/database.dart';
+import 'package:xzifra/domain/periods.dart';
+import 'package:xzifra/domain/recurrence.dart';
 
 void main() {
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
@@ -77,6 +79,20 @@ void main() {
       "INSERT INTO payment_methods (id, name, type, sort_order) "
       "VALUES ('debit-id', 'Debit card', 'debit', 2)",
     );
+    raw.execute('''
+      CREATE TABLE expenses (
+        id TEXT NOT NULL PRIMARY KEY,
+        amount_cents INTEGER NOT NULL,
+        currency TEXT NOT NULL,
+        date TEXT NOT NULL,
+        category_id TEXT NOT NULL,
+        payment_method_id TEXT NULL,
+        note TEXT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        CHECK (amount_cents > 0)
+      );
+    ''');
     raw.execute('PRAGMA user_version = 1;');
 
     final migrated = AppDatabase(NativeDatabase.opened(raw));
@@ -123,6 +139,20 @@ void main() {
       "INSERT INTO payment_methods (id, name, type, sort_order) "
       "VALUES ('cash-id', 'Cash', 'cash', 0)",
     );
+    raw.execute('''
+      CREATE TABLE expenses (
+        id TEXT NOT NULL PRIMARY KEY,
+        amount_cents INTEGER NOT NULL,
+        currency TEXT NOT NULL,
+        date TEXT NOT NULL,
+        category_id TEXT NOT NULL,
+        payment_method_id TEXT NULL,
+        note TEXT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        CHECK (amount_cents > 0)
+      );
+    ''');
     raw.execute('PRAGMA user_version = 1;');
 
     final migrated = AppDatabase(NativeDatabase.opened(raw));
@@ -181,6 +211,20 @@ void main() {
       "INSERT INTO payment_methods (id, name, type, icon, sort_order) "
       "VALUES ('card-id', 'Card', 'custom', '💳', 0)",
     );
+    raw.execute('''
+      CREATE TABLE expenses (
+        id TEXT NOT NULL PRIMARY KEY,
+        amount_cents INTEGER NOT NULL,
+        currency TEXT NOT NULL,
+        date TEXT NOT NULL,
+        category_id TEXT NOT NULL,
+        payment_method_id TEXT NULL,
+        note TEXT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        CHECK (amount_cents > 0)
+      );
+    ''');
     raw.execute('PRAGMA user_version = 2;');
 
     final migrated = AppDatabase(NativeDatabase.opened(raw));
@@ -204,7 +248,7 @@ void main() {
     expect(templates.single.note, 'Weekly');
   });
 
-  test('migrates v3 to v4 by adding notes and bookmarks', () async {
+  test('migrates v3 to the current schema with notes and bookmarks', () async {
     final raw = sqlite.sqlite3.openInMemory();
     raw.execute('''
       CREATE TABLE categories (
@@ -224,6 +268,20 @@ void main() {
         icon TEXT NOT NULL DEFAULT '💳',
         sort_order INTEGER NOT NULL DEFAULT 0,
         archived_at INTEGER NULL
+      );
+    ''');
+    raw.execute('''
+      CREATE TABLE expenses (
+        id TEXT NOT NULL PRIMARY KEY,
+        amount_cents INTEGER NOT NULL,
+        currency TEXT NOT NULL,
+        date TEXT NOT NULL,
+        category_id TEXT NOT NULL,
+        payment_method_id TEXT NULL,
+        note TEXT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        CHECK (amount_cents > 0)
       );
     ''');
     raw.execute('''
@@ -254,6 +312,333 @@ void main() {
       (await migrated.select(migrated.bookmarks).get()).single.url,
       'https://example.com',
     );
+  });
+
+  test('migrates v4 to v5 with recurring expenses and reminders', () async {
+    final raw = sqlite.sqlite3.openInMemory();
+    raw.execute('''
+      CREATE TABLE categories (
+        id TEXT NOT NULL PRIMARY KEY,
+        name TEXT NOT NULL,
+        icon TEXT NOT NULL DEFAULT '📦',
+        color INTEGER NOT NULL,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        archived_at INTEGER NULL
+      );
+    ''');
+    raw.execute('''
+      CREATE TABLE payment_methods (
+        id TEXT NOT NULL PRIMARY KEY,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        icon TEXT NOT NULL DEFAULT '💳',
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        archived_at INTEGER NULL
+      );
+    ''');
+    raw.execute('''
+      CREATE TABLE expenses (
+        id TEXT NOT NULL PRIMARY KEY,
+        amount_cents INTEGER NOT NULL,
+        currency TEXT NOT NULL,
+        date TEXT NOT NULL,
+        category_id TEXT NOT NULL,
+        payment_method_id TEXT NULL,
+        note TEXT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        CHECK (amount_cents > 0)
+      );
+    ''');
+    raw.execute('''
+      CREATE TABLE templates (
+        id TEXT NOT NULL PRIMARY KEY,
+        name TEXT NOT NULL,
+        amount_cents INTEGER NOT NULL,
+        currency TEXT NOT NULL,
+        category_id TEXT NOT NULL,
+        payment_method_id TEXT NULL,
+        note TEXT NULL,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        archived_at INTEGER NULL,
+        created_at INTEGER NOT NULL,
+        CHECK (amount_cents > 0)
+      );
+    ''');
+    raw.execute('''
+      CREATE TABLE notes (
+        id TEXT NOT NULL PRIMARY KEY,
+        title TEXT NOT NULL,
+        body TEXT NOT NULL DEFAULT '',
+        tags TEXT NOT NULL DEFAULT '',
+        pinned INTEGER NOT NULL DEFAULT 0,
+        archived_at INTEGER NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+    ''');
+    raw.execute('''
+      CREATE TABLE bookmarks (
+        id TEXT NOT NULL PRIMARY KEY,
+        url TEXT NOT NULL,
+        title TEXT NOT NULL,
+        note TEXT NULL,
+        tags TEXT NOT NULL DEFAULT '',
+        archived_at INTEGER NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+    ''');
+    raw.execute('''
+      CREATE TABLE settings_entries (
+        key TEXT NOT NULL PRIMARY KEY,
+        value TEXT NOT NULL
+      );
+    ''');
+    raw.execute(
+      "INSERT INTO categories (id, name, icon, color, sort_order) "
+      "VALUES ('food-id', 'Food', '🍔', 0, 0)",
+    );
+    raw.execute('PRAGMA user_version = 4;');
+
+    final migrated = AppDatabase(NativeDatabase.opened(raw));
+    addTearDown(migrated.close);
+
+    expect(await migrated.select(migrated.recurringExpenses).get(), isEmpty);
+    expect(await migrated.select(migrated.reminders).get(), isEmpty);
+    final columns = await migrated
+        .customSelect('PRAGMA table_info(expenses)')
+        .get();
+    expect(
+      columns.map((row) => row.read<String>('name')),
+      contains('recurring_id'),
+    );
+
+    await migrated.addRecurringExpense(
+      name: 'Rent',
+      amountCents: 50000,
+      currency: 'PEN',
+      categoryId: 'food-id',
+      frequency: RecurringFrequency.monthly,
+      interval: 1,
+      nextDate: '2026-01-31',
+    );
+    await migrated.addReminder(
+      title: 'Call',
+      dueAt: DateTime(2026, 11, 5, 9, 30),
+      tags: 'home',
+    );
+    expect(
+      (await migrated.select(migrated.recurringExpenses).get()).single.name,
+      'Rent',
+    );
+    expect(
+      (await migrated.select(migrated.reminders).get()).single.title,
+      'Call',
+    );
+  });
+
+  test('creates, registers, skips and pauses recurring expenses', () async {
+    final food = await categoryNamed('Food');
+    final cash = await methodNamed('Cash');
+    await database.addRecurringExpense(
+      name: 'Rent',
+      amountCents: 50000,
+      currency: 'PEN',
+      categoryId: food.id,
+      paymentMethodId: cash.id,
+      frequency: RecurringFrequency.monthly,
+      interval: 1,
+      nextDate: '2026-01-31',
+      note: 'Monthly rent',
+    );
+
+    final rule = (await database.watchRecurringExpenses().first).single;
+    expect(rule.frequency, 'monthly');
+    expect(rule.interval, 1);
+    expect(rule.active, isTrue);
+
+    await database.registerRecurringExpense(rule.id);
+    final registered = (await database.allExpenses()).single;
+    expect(registered.expense.amountCents, 50000);
+    expect(registered.expense.date, '2026-01-31');
+    expect(registered.expense.recurringId, rule.id);
+    expect(registered.expense.note, 'Monthly rent');
+    expect(
+      (await database.getRecurringExpense(rule.id))?.nextDate,
+      '2026-02-28',
+    );
+
+    await database.skipRecurringExpense(rule.id);
+    expect(
+      (await database.getRecurringExpense(rule.id))?.nextDate,
+      '2026-03-28',
+    );
+    expect((await database.allExpenses()).length, 1);
+
+    await database.setRecurringActive(rule.id, active: false);
+    expect(await database.watchActiveRecurringExpenses().first, isEmpty);
+    expect(
+      (await database.watchRecurringExpenses().first).single.active,
+      isFalse,
+    );
+
+    await database.updateRecurringExpense(
+      rule.id,
+      name: 'Rent 2026',
+      amountCents: 55000,
+      currency: 'USD',
+      categoryId: food.id,
+      paymentMethodId: cash.id,
+      frequency: RecurringFrequency.weekly,
+      interval: 2,
+      nextDate: '2026-04-01',
+      endDate: '2026-12-31',
+      active: true,
+      note: null,
+    );
+    final updated = await database.getRecurringExpense(rule.id);
+    expect(updated?.name, 'Rent 2026');
+    expect(updated?.amountCents, 55000);
+    expect(updated?.currency, 'USD');
+    expect(updated?.endDate, '2026-12-31');
+    expect(updated?.active, isTrue);
+
+    // Deleting the rule keeps the registered expense.
+    await database.deleteRecurringExpense(rule.id);
+    expect(await database.getRecurringExpense(rule.id), isNull);
+    expect((await database.allExpenses()).single.expense.recurringId, rule.id);
+  });
+
+  test(
+    'recurring registration is guarded by due state and active flag',
+    () async {
+      final food = await categoryNamed('Food');
+      final cash = await methodNamed('Cash');
+      final today = DateTime.now();
+      final todayKey = Periods.dateKey(today);
+
+      await database.addRecurringExpense(
+        name: 'Internet',
+        amountCents: 12000,
+        currency: 'PEN',
+        categoryId: food.id,
+        paymentMethodId: cash.id,
+        frequency: RecurringFrequency.monthly,
+        interval: 1,
+        nextDate: todayKey,
+      );
+      final rule = (await database.watchRecurringExpenses().first).single;
+
+      await database.registerRecurringExpense(rule.id);
+      await database.registerRecurringExpense(rule.id);
+      final registered = (await database.allExpenses())
+          .where((item) => item.expense.recurringId == rule.id)
+          .toList();
+      expect(registered.length, 1);
+      final next = (await database.getRecurringExpense(rule.id))!.nextDate;
+      expect(DateTime.parse(next).isAfter(today), isTrue);
+
+      await database.setRecurringActive(rule.id, active: false);
+      await database.registerRecurringExpense(rule.id);
+      expect(
+        (await database.allExpenses())
+            .where((item) => item.expense.recurringId == rule.id)
+            .length,
+        1,
+      );
+
+      await database.addRecurringExpense(
+        name: 'Old gym',
+        amountCents: 9000,
+        currency: 'PEN',
+        categoryId: food.id,
+        frequency: RecurringFrequency.monthly,
+        interval: 1,
+        nextDate: todayKey,
+        endDate: Periods.dateKey(today.subtract(const Duration(days: 1))),
+      );
+      final finished = (await database.watchRecurringExpenses().first)
+          .firstWhere((item) => item.name == 'Old gym');
+      await database.registerRecurringExpense(finished.id);
+      expect(
+        (await database.allExpenses())
+            .where((item) => item.expense.recurringId == finished.id)
+            .length,
+        0,
+      );
+    },
+  );
+
+  test(
+    'a category or payment method used by a recurring rule cannot be deleted',
+    () async {
+      final food = await categoryNamed('Food');
+      final cash = await methodNamed('Cash');
+      await database.addRecurringExpense(
+        name: 'Internet',
+        amountCents: 12000,
+        currency: 'PEN',
+        categoryId: food.id,
+        paymentMethodId: cash.id,
+        frequency: RecurringFrequency.monthly,
+        interval: 1,
+        nextDate: Periods.dateKey(DateTime.now()),
+      );
+
+      expect(
+        () => database.deleteCategory(food.id),
+        throwsA(isA<StateError>()),
+      );
+      expect(
+        () => database.deletePaymentMethod(cash.id),
+        throwsA(isA<StateError>()),
+      );
+    },
+  );
+
+  test('creates, updates, completes and deletes reminders', () async {
+    final first = await database.addReminder(
+      title: 'Call the dentist',
+      note: 'Ask for a morning slot',
+      dueAt: DateTime(2026, 11, 5, 9, 30),
+      tags: 'health, calls',
+    );
+    await database.addReminder(
+      title: 'Pay rent',
+      dueAt: DateTime(2026, 11, 4, 18),
+      tags: 'home',
+    );
+
+    expect(await database.countReminders(), 2);
+    expect((await database.pendingReminders()).length, 2);
+    var reminders = await database.watchReminders().first;
+    expect(reminders.map((item) => item.title).toList(), [
+      'Pay rent',
+      'Call the dentist',
+    ]);
+
+    await database.setReminderDone(first, done: true);
+    final done = await database.getReminder(first);
+    expect(done?.doneAt, isNotNull);
+    expect((await database.pendingReminders()).length, 1);
+
+    await database.updateReminder(
+      first,
+      title: 'Dentist appointment',
+      note: null,
+      dueAt: DateTime(2026, 11, 6, 10),
+      tags: 'health',
+    );
+    final updated = await database.getReminder(first);
+    expect(updated?.title, 'Dentist appointment');
+    expect(updated?.note, isNull);
+    expect(updated?.tags, 'health');
+    expect(updated?.dueAt, DateTime(2026, 11, 6, 10));
+
+    await database.deleteReminder(first);
+    expect(await database.getReminder(first), isNull);
+    expect(await database.countReminders(), 1);
   });
 
   test('creates, pins, archives, searches and deletes notes', () async {
@@ -772,7 +1157,7 @@ void main() {
     );
 
     final backup = await database.exportJson();
-    expect(backup['schemaVersion'], 4);
+    expect(backup['schemaVersion'], 5);
     expect((backup['notes'] as List).length, 1);
     expect((backup['bookmarks'] as List).length, 1);
 
@@ -795,6 +1180,98 @@ void main() {
     expect(bookmarks.single.title, 'Travel guide');
     expect(bookmarks.single.note, 'Read before the trip');
     expect(bookmarks.single.tags, 'travel');
+  });
+
+  test(
+    'export and import round-trip includes recurring and reminders',
+    () async {
+      final food = await categoryNamed('Food');
+      final cash = await methodNamed('Cash');
+      await database.addRecurringExpense(
+        name: 'Rent',
+        amountCents: 50000,
+        currency: 'PEN',
+        categoryId: food.id,
+        paymentMethodId: cash.id,
+        frequency: RecurringFrequency.monthly,
+        interval: 1,
+        nextDate: '2026-01-31',
+        endDate: '2026-12-31',
+        note: 'Monthly rent',
+      );
+      final rule = (await database.watchRecurringExpenses().first).single;
+      await database.registerRecurringExpense(rule.id);
+      await database.addReminder(
+        title: 'Call the dentist',
+        note: 'Ask for a morning slot',
+        dueAt: DateTime(2026, 11, 5, 9, 30),
+        tags: 'health',
+      );
+
+      final backup = await database.exportJson();
+      expect(backup['schemaVersion'], 5);
+      expect((backup['recurringExpenses'] as List).length, 1);
+      expect((backup['reminders'] as List).length, 1);
+
+      final restored = AppDatabase(NativeDatabase.memory());
+      addTearDown(restored.close);
+
+      final summary = await restored.importJson(backup);
+      expect(summary.recurringExpenses, 1);
+      expect(summary.reminders, 1);
+
+      final restoredRule =
+          (await restored.select(restored.recurringExpenses).get()).single;
+      expect(restoredRule.name, 'Rent');
+      expect(restoredRule.frequency, 'monthly');
+      expect(restoredRule.nextDate, '2026-02-28');
+      expect(restoredRule.endDate, '2026-12-31');
+
+      final restoredExpense = (await restored.allExpenses()).single;
+      expect(restoredExpense.expense.recurringId, rule.id);
+      expect(restoredExpense.expense.date, '2026-01-31');
+
+      final restoredReminder =
+          (await restored.select(restored.reminders).get()).single;
+      expect(restoredReminder.title, 'Call the dentist');
+      expect(restoredReminder.note, 'Ask for a morning slot');
+      expect(restoredReminder.tags, 'health');
+      expect(restoredReminder.dueAt, DateTime(2026, 11, 5, 9, 30));
+    },
+  );
+
+  test('imports old backups without recurring rules or reminders', () async {
+    final food = await categoryNamed('Food');
+    await database.addExpense(
+      amountCents: 1250,
+      currency: 'PEN',
+      date: '2026-11-02',
+      categoryId: food.id,
+      note: 'Lunch',
+    );
+    final backup = await database.exportJson();
+    backup.remove('recurringExpenses');
+    backup.remove('reminders');
+    backup['expenses'] = [
+      {
+        'id': 'expense-old',
+        'amountCents': 1000,
+        'currency': 'PEN',
+        'date': '2026-11-02',
+        'categoryId': food.id,
+        'recurringId': 'missing-rule',
+      },
+    ];
+
+    final restored = AppDatabase(NativeDatabase.memory());
+    addTearDown(restored.close);
+
+    final summary = await restored.importJson(backup);
+    expect(summary.recurringExpenses, 0);
+    expect(summary.reminders, 0);
+    expect(await restored.select(restored.recurringExpenses).get(), isEmpty);
+    expect(await restored.select(restored.reminders).get(), isEmpty);
+    expect((await restored.allExpenses()).single.expense.recurringId, isNull);
   });
 
   test('imports an old backup without notes or bookmarks', () async {

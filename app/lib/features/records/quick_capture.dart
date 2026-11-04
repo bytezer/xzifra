@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/l10n.dart';
 
-enum QuickCaptureAction { expense, note, bookmark }
+enum QuickCaptureAction { expense, note, bookmark, reminder }
 
 /// Opens the shell's quick capture sheet and navigates to the chosen form.
 Future<void> showQuickCapture(BuildContext context) async {
@@ -30,6 +30,11 @@ Future<void> showQuickCapture(BuildContext context) async {
             title: Text(l10n.quickAddBookmark),
             onTap: () => Navigator.of(context).pop(QuickCaptureAction.bookmark),
           ),
+          ListTile(
+            leading: const Icon(Icons.notification_add_outlined),
+            title: Text(l10n.quickAddReminder),
+            onTap: () => Navigator.of(context).pop(QuickCaptureAction.reminder),
+          ),
           const SizedBox(height: 8),
         ],
       ),
@@ -44,5 +49,7 @@ Future<void> showQuickCapture(BuildContext context) async {
       context.push('/notes/new');
     case QuickCaptureAction.bookmark:
       context.push('/bookmarks/new');
+    case QuickCaptureAction.reminder:
+      context.push('/reminders/new');
   }
 }

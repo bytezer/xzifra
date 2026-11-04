@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/app_shortcuts.dart';
 import 'core/locale_settings.dart';
+import 'core/notifications.dart';
 import 'core/theme.dart';
 import 'core/theme_settings.dart';
 import 'core/widget_data_sync.dart';
@@ -71,6 +72,10 @@ class _ShortcutLabelSyncState extends State<_ShortcutLabelSync> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       AppShortcuts.markReady();
       WidgetDataSync.markReady();
+      NotificationService.instance.setOpenReminderHandler((reminderId) {
+        if (reminderId.isEmpty) return;
+        appRouter.push('/reminders/$reminderId/edit');
+      });
       if (mounted) _syncLabels();
     });
   }

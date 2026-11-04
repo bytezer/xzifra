@@ -308,6 +308,12 @@ abstract class AppLocalizations {
   /// **'Bookmark'**
   String get quickAddBookmark;
 
+  /// No description provided for @quickAddReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder'**
+  String get quickAddReminder;
+
   /// No description provided for @tagsLabel.
   ///
   /// In en, this message translates to:
@@ -1283,12 +1289,14 @@ abstract class AppLocalizations {
   /// No description provided for @settingsImportProcessed.
   ///
   /// In en, this message translates to:
-  /// **'Processed {total} records ({expenses} expenses, {notes} notes, {bookmarks} bookmarks).'**
+  /// **'Processed {total} records ({expenses} expenses, {notes} notes, {bookmarks} bookmarks, {recurring} recurring, {reminders} reminders).'**
   String settingsImportProcessed(
     int total,
     int expenses,
     int notes,
     int bookmarks,
+    int recurring,
+    int reminders,
   );
 
   /// No description provided for @settingsImportError.
@@ -1405,6 +1413,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{\"{name}\" is used by 1 template. Archiving keeps your templates intact.} other{\"{name}\" is used by {count} templates. Archiving keeps your templates intact.}}'**
   String categoriesArchiveTemplatesMessage(String name, int count);
 
+  /// No description provided for @categoriesArchiveRecurringMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{\"{name}\" is used by 1 recurring expense. Archiving keeps your recurring rules intact.} other{\"{name}\" is used by {count} recurring expenses. Archiving keeps your recurring rules intact.}}'**
+  String categoriesArchiveRecurringMessage(String name, int count);
+
   /// No description provided for @paymentMethodsTitle.
   ///
   /// In en, this message translates to:
@@ -1476,6 +1490,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{\"{name}\" is used by 1 template. Archiving keeps your templates intact.} other{\"{name}\" is used by {count} templates. Archiving keeps your templates intact.}}'**
   String paymentMethodsArchiveTemplatesMessage(String name, int count);
+
+  /// No description provided for @paymentMethodsArchiveRecurringMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{\"{name}\" is used by 1 recurring expense. Archiving keeps your recurring rules intact.} other{\"{name}\" is used by {count} recurring expenses. Archiving keeps your recurring rules intact.}}'**
+  String paymentMethodsArchiveRecurringMessage(String name, int count);
 
   /// No description provided for @templatesTitle.
   ///
@@ -1620,6 +1640,420 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete \"{name}\"? This cannot be undone.'**
   String templatesDeleteDialogMessage(String name);
+
+  /// No description provided for @recurringTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring'**
+  String get recurringTitle;
+
+  /// No description provided for @recurringNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New recurring expense'**
+  String get recurringNewTitle;
+
+  /// No description provided for @recurringEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit recurring expense'**
+  String get recurringEditTitle;
+
+  /// No description provided for @recurringEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No recurring expenses yet'**
+  String get recurringEmptyTitle;
+
+  /// No description provided for @recurringEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up rent, subscriptions or other regular payments.'**
+  String get recurringEmptyMessage;
+
+  /// No description provided for @recurringName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get recurringName;
+
+  /// No description provided for @recurringNameError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name.'**
+  String get recurringNameError;
+
+  /// No description provided for @recurringAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get recurringAmount;
+
+  /// No description provided for @recurringCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get recurringCurrency;
+
+  /// No description provided for @recurringCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get recurringCategory;
+
+  /// No description provided for @recurringPaymentMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment method'**
+  String get recurringPaymentMethod;
+
+  /// No description provided for @recurringFrequency.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency'**
+  String get recurringFrequency;
+
+  /// No description provided for @recurringInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat every'**
+  String get recurringInterval;
+
+  /// No description provided for @recurringIntervalError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an interval of at least 1.'**
+  String get recurringIntervalError;
+
+  /// No description provided for @recurringNextDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Next date'**
+  String get recurringNextDate;
+
+  /// No description provided for @recurringEndDate.
+  ///
+  /// In en, this message translates to:
+  /// **'End date (optional)'**
+  String get recurringEndDate;
+
+  /// No description provided for @recurringNoEndDate.
+  ///
+  /// In en, this message translates to:
+  /// **'No end date'**
+  String get recurringNoEndDate;
+
+  /// No description provided for @recurringNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get recurringNote;
+
+  /// No description provided for @recurringActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get recurringActive;
+
+  /// No description provided for @recurringDueNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Due now'**
+  String get recurringDueNow;
+
+  /// No description provided for @recurringPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get recurringPaused;
+
+  /// No description provided for @recurringPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get recurringPause;
+
+  /// No description provided for @recurringResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get recurringResume;
+
+  /// No description provided for @recurringRegister.
+  ///
+  /// In en, this message translates to:
+  /// **'Register'**
+  String get recurringRegister;
+
+  /// No description provided for @recurringSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get recurringSkip;
+
+  /// No description provided for @recurringRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense registered for {name}.'**
+  String recurringRegistered(String name);
+
+  /// No description provided for @recurringSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped {name}.'**
+  String recurringSkipped(String name);
+
+  /// No description provided for @recurringDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete recurring expense?'**
+  String get recurringDeleteTitle;
+
+  /// No description provided for @recurringDeleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"? Past expenses are kept.'**
+  String recurringDeleteMessage(String name);
+
+  /// No description provided for @recurringSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the recurring expense.'**
+  String get recurringSaveError;
+
+  /// No description provided for @recurringNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring expense not found.'**
+  String get recurringNotFound;
+
+  /// No description provided for @recurringLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load this recurring expense.'**
+  String get recurringLoadError;
+
+  /// No description provided for @recurringFrequencyDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get recurringFrequencyDaily;
+
+  /// No description provided for @recurringFrequencyWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get recurringFrequencyWeekly;
+
+  /// No description provided for @recurringFrequencyMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get recurringFrequencyMonthly;
+
+  /// No description provided for @recurringFrequencyYearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly'**
+  String get recurringFrequencyYearly;
+
+  /// No description provided for @recurringEveryInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {count} · {frequency}'**
+  String recurringEveryInterval(int count, String frequency);
+
+  /// No description provided for @recurringNextLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {date}'**
+  String recurringNextLabel(String date);
+
+  /// No description provided for @recurringEndDateError.
+  ///
+  /// In en, this message translates to:
+  /// **'The end date must be on or after the next date.'**
+  String get recurringEndDateError;
+
+  /// No description provided for @remindersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get remindersTitle;
+
+  /// No description provided for @remindersEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No reminders yet'**
+  String get remindersEmptyTitle;
+
+  /// No description provided for @remindersEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a reminder and get a local notification when it is due.'**
+  String get remindersEmptyMessage;
+
+  /// No description provided for @remindersNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New reminder'**
+  String get remindersNewTitle;
+
+  /// No description provided for @remindersEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit reminder'**
+  String get remindersEditTitle;
+
+  /// No description provided for @remindersNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder not found.'**
+  String get remindersNotFound;
+
+  /// No description provided for @remindersLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load this reminder.'**
+  String get remindersLoadError;
+
+  /// No description provided for @remindersTitleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get remindersTitleLabel;
+
+  /// No description provided for @remindersNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get remindersNoteLabel;
+
+  /// No description provided for @remindersDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Due date and time'**
+  String get remindersDue;
+
+  /// No description provided for @remindersTitleError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a title.'**
+  String get remindersTitleError;
+
+  /// No description provided for @remindersSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the reminder.'**
+  String get remindersSaveError;
+
+  /// No description provided for @remindersDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder deleted.'**
+  String get remindersDeleted;
+
+  /// No description provided for @remindersDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete reminder?'**
+  String get remindersDeleteTitle;
+
+  /// No description provided for @remindersDeleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{title}\"? This cannot be undone.'**
+  String remindersDeleteMessage(String title);
+
+  /// No description provided for @remindersMarkDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as done'**
+  String get remindersMarkDone;
+
+  /// No description provided for @remindersMarkUndone.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as not done'**
+  String get remindersMarkUndone;
+
+  /// No description provided for @remindersOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get remindersOverdue;
+
+  /// No description provided for @remindersToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get remindersToday;
+
+  /// No description provided for @remindersUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get remindersUpcoming;
+
+  /// No description provided for @remindersDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get remindersDone;
+
+  /// No description provided for @remindersNoMatchesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches'**
+  String get remindersNoMatchesTitle;
+
+  /// No description provided for @remindersNoMatchesMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a different tag.'**
+  String get remindersNoMatchesMessage;
+
+  /// No description provided for @remindersNotificationsDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder saved. Notifications are off, so you won\'t get an alert.'**
+  String get remindersNotificationsDenied;
+
+  /// No description provided for @dashboardUpcomingPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming payments'**
+  String get dashboardUpcomingPayments;
+
+  /// No description provided for @dashboardNoUpcomingPaymentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming payments'**
+  String get dashboardNoUpcomingPaymentsTitle;
+
+  /// No description provided for @dashboardNoUpcomingPaymentsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a recurring expense to see it here.'**
+  String get dashboardNoUpcomingPaymentsMessage;
+
+  /// No description provided for @dashboardUpcomingReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming reminders'**
+  String get dashboardUpcomingReminders;
+
+  /// No description provided for @dashboardNoUpcomingRemindersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming reminders'**
+  String get dashboardNoUpcomingRemindersTitle;
+
+  /// No description provided for @dashboardNoUpcomingRemindersMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a reminder to see it here.'**
+  String get dashboardNoUpcomingRemindersMessage;
 
   /// No description provided for @aboutTitle.
   ///

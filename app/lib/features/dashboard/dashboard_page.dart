@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/l10n.dart';
+import '../../core/recurrence_labels.dart';
 import '../../core/widgets/currency_selector.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/month_selector.dart';
@@ -10,6 +11,7 @@ import '../../core/widgets/section_card.dart';
 import '../../data/database.dart';
 import '../../domain/money.dart';
 import '../../domain/periods.dart';
+import '../../domain/recurrence.dart';
 import '../../domain/reports.dart';
 import '../../providers.dart';
 import '../bookmarks/bookmark_launcher.dart';
@@ -55,12 +57,23 @@ class DashboardPage extends ConsumerWidget {
     final recentBookmarks =
         ref.watch(recentBookmarksProvider(3)).asData?.value ??
         const <Bookmark>[];
+    final activeRecurring =
+        ref.watch(activeRecurringExpensesProvider).asData?.value ??
+        const <RecurringExpense>[];
+    final reminders =
+        ref.watch(remindersProvider).asData?.value ?? const <Reminder>[];
     final categories =
         ref.watch(allCategoriesProvider).asData?.value ?? const <Category>[];
 
     final total = TotalsMath.sum(totals.map((item) => item.totalCents));
     final categoriesById = {for (final item in categories) item.id: item};
     final top = totals.take(5).toList();
+    final today = DateTime.now();
+    final upcomingRecurring = activeRecurring.take(3).toList();
+    final upcomingReminders = reminders
+        .where((reminder) => reminder.doneAt == null)
+        .take(3)
+        .toList();
 
     return Scaffold(
       body: SafeArea(
@@ -82,6 +95,64 @@ class DashboardPage extends ConsumerWidget {
               total: total,
               previousTotal: previousTotal,
               currency: currency,
+            ),
+            const SizedBox(height: 16),
+            SectionCard(
+              title: context.l10n.dashboardUpcomingPayments,
+              trailing: TextButton(
+                onPressed: () => context.push('/recurring'),
+                child: Text(context.l10n.dashboardViewAll),
+              ),
+              child: upcomingRecurring.isEmpty
+                  ? EmptyState(
+                      icon: Icons.event_repeat,
+                      title: context.l10n.dashboardNoUpcomingPaymentsTitle,
+                      message: context.l10n.dashboardNoUpcomingPaymentsMessage,
+                    )
+                  : Column(
+                      children: [
+                        for (final rule in upcomingRecurring) ...[
+                          _UpcomingPaymentRow(
+                            rule: rule,
+                            category: categoriesById[rule.categoryId],
+                            currency: rule.currency,
+                            due: isRecurringDue(
+                              active: rule.active,
+                              nextDate: rule.nextDate,
+                              endDate: rule.endDate,
+                              today: today,
+                            ),
+                            onRegister: () =>
+                                _registerRecurring(context, ref, rule),
+                          ),
+                          if (rule != upcomingRecurring.last)
+                            const Divider(height: 1),
+                        ],
+                      ],
+                    ),
+            ),
+            const SizedBox(height: 16),
+            SectionCard(
+              title: context.l10n.dashboardUpcomingReminders,
+              trailing: TextButton(
+                onPressed: () => context.go('/records?tab=reminders'),
+                child: Text(context.l10n.dashboardViewAll),
+              ),
+              child: upcomingReminders.isEmpty
+                  ? EmptyState(
+                      icon: Icons.notifications_none,
+                      title: context.l10n.dashboardNoUpcomingRemindersTitle,
+                      message: context.l10n.dashboardNoUpcomingRemindersMessage,
+                    )
+                  : Column(
+                      children: [
+                        for (final reminder in upcomingReminders) ...[
+                          _UpcomingReminderRow(reminder: reminder),
+                          if (reminder != upcomingReminders.last)
+                            const Divider(height: 1),
+                        ],
+                      ],
+                    ),
             ),
             const SizedBox(height: 16),
             SectionCard(
@@ -581,6 +652,155 @@ class _RecentBookmarkRow extends StatelessWidget {
               Icons.open_in_new,
               size: 16,
               color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+Future<void> _registerRecurring(
+  BuildContext context,
+  WidgetRef ref,
+  RecurringExpense rule,
+) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final message = context.l10n.recurringRegistered(rule.name);
+  await ref.read(databaseProvider).registerRecurringExpense(rule.id);
+  if (!context.mounted) return;
+  messenger.showSnackBar(SnackBar(content: Text(message)));
+}
+
+class _UpcomingPaymentRow extends StatelessWidget {
+  const _UpcomingPaymentRow({
+    required this.rule,
+    required this.category,
+    required this.currency,
+    required this.due,
+    required this.onRegister,
+  });
+
+  final RecurringExpense rule;
+  final Category? category;
+  final String currency;
+  final bool due;
+  final VoidCallback onRegister;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final nextLabel = Periods.dayLabel(
+      rule.nextDate,
+      locale: localeNameOf(context),
+      today: context.l10n.today,
+      yesterday: context.l10n.yesterday,
+    );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: category == null
+                ? scheme.surfaceContainerHighest
+                : Color(category!.color).withValues(alpha: 0.15),
+            child: Text(
+              category?.icon ?? '🔁',
+              style: const TextStyle(fontSize: 16),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  rule.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium,
+                ),
+                Text(
+                  '${Money.format(rule.amountCents, currency, locale: localeNameOf(context))} · ${due ? context.l10n.recurringDueNow : nextLabel}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: due ? scheme.error : scheme.onSurfaceVariant,
+                    fontWeight: due ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (due) ...[
+            const SizedBox(width: 8),
+            TextButton(
+              onPressed: onRegister,
+              child: Text(context.l10n.recurringRegister),
+            ),
+          ] else
+            Icon(Icons.chevron_right, size: 18, color: scheme.onSurfaceVariant),
+        ],
+      ),
+    );
+  }
+}
+
+class _UpcomingReminderRow extends StatelessWidget {
+  const _UpcomingReminderRow({required this.reminder});
+
+  final Reminder reminder;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final overdue = reminder.dueAt.isBefore(DateTime.now());
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: () => context.push('/reminders/${reminder.id}/edit'),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Icon(
+              overdue
+                  ? Icons.notification_important_outlined
+                  : Icons.notifications_none,
+              size: 20,
+              color: overdue ? scheme.error : scheme.primary,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    reminder.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  Text(
+                    reminderDueLabel(
+                      context,
+                      reminder.dueAt,
+                      today: context.l10n.today,
+                      yesterday: context.l10n.yesterday,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: overdue ? scheme.error : scheme.onSurfaceVariant,
+                      fontWeight: overdue ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

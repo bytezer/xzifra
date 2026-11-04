@@ -59,6 +59,7 @@ void main() {
     expect(find.text('Gastos'), findsOneWidget);
     expect(find.text('Notas'), findsOneWidget);
     expect(find.text('Marcadores'), findsOneWidget);
+    expect(find.text('Recordatorios'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
     await tester.pumpWidget(const SizedBox.shrink());
