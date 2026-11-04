@@ -599,7 +599,7 @@
   "aboutCurrency": "Currency",
   "aboutLanguage": "Language",
   "aboutMadeBy": "Made by xzero",
-  "aboutIconCredit": "Icon based on Lucide x (ISC/MIT)",
+  "aboutIconCredit": "Icon by xzero",
   "aboutDebugCopied": "Debug info copied.",
   "aboutLinkError": "Could not open the link.",
   "aboutLoadError": "Could not read app information.",

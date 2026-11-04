@@ -65,9 +65,7 @@ Future<void> main() async {
 
 void _registerLicenses() {
   LicenseRegistry.addLicense(() async* {
-    final license = await rootBundle.loadString(
-      'assets/icon/LICENSE-lucide.txt',
-    );
+    final license = await rootBundle.loadString('assets/icon/LICENSE-icon.txt');
     yield LicenseEntryWithLineBreaks(['xzifra icon'], license);
   });
 }

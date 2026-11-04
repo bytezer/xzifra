@@ -1,0 +1,7 @@
+Xzifra launcher icon
+
+The isometric cube glyph and its four corner dots are an original work by
+xzero for Xzifra. They are licensed under the MIT License, the same as the
+project.
+
+See the repository LICENSE file for the full MIT text.

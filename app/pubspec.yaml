@@ -49,7 +49,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/icon/icon.png
-    - assets/icon/LICENSE-lucide.txt
+    - assets/icon/LICENSE-icon.txt
 
 flutter_launcher_icons:
   android: true

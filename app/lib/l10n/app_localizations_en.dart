@@ -1282,7 +1282,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aboutMadeBy => 'Made by xzero';
 
   @override
-  String get aboutIconCredit => 'Icon based on Lucide x (ISC/MIT)';
+  String get aboutIconCredit => 'Icon by xzero';
 
   @override
   String get aboutDebugCopied => 'Debug info copied.';

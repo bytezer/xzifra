@@ -19,7 +19,6 @@ const _repoUrl = 'https://github.com/bytezer/xzifra';
 const _releasesUrl = 'https://github.com/bytezer/xzifra/releases';
 const _issuesUrl = 'https://github.com/bytezer/xzifra/issues/new';
 const _licenseUrl = 'https://github.com/bytezer/xzifra/blob/main/LICENSE';
-const _lucideUrl = 'https://lucide.dev/icons/x';
 
 const _buildCommit = String.fromEnvironment(
   'BUILD_COMMIT',
@@ -194,10 +193,15 @@ class AboutPage extends ConsumerWidget {
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
-            TextButton.icon(
-              onPressed: () => _open(context, _lucideUrl),
-              icon: const Icon(Icons.brush_outlined, size: 16),
-              label: Text(l10n.aboutIconCredit),
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                l10n.aboutIconCredit,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
             ),
           ],
         ),

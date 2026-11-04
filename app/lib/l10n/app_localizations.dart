@@ -2388,7 +2388,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutIconCredit.
   ///
   /// In en, this message translates to:
-  /// **'Icon based on Lucide x (ISC/MIT)'**
+  /// **'Icon by xzero'**
   String get aboutIconCredit;
 
   /// No description provided for @aboutDebugCopied.

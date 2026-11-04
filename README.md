@@ -264,10 +264,9 @@ docs/          signing notes
 
 ## Icon
 
-The launcher icon is a monogram **X** derived from [Lucide](https://lucide.dev/icons/x)'s
-`x` icon (ISC, derived from Feather/MIT), composed on the app's indigo seed
-color (`#4F46E5`) with two ledger rules. Sources and license live in
-`app/assets/icon/`.
+The launcher icon is an original isometric cube with four corner dots, drawn
+for Xzifra by xzero and licensed under the project's MIT license. Sources and
+notice live in `app/assets/icon/`.
 
 Regenerate the master PNGs and the Android resources with:
 
@@ -283,6 +282,6 @@ cloud sync.
 
 ## License
 
-MIT — see [LICENSE](LICENSE). The launcher icon is based on Lucide's `x` glyph
-(ISC, derived from Feather/MIT); the full notice is in
-`app/assets/icon/LICENSE-lucide.txt` and in the app's open-source licenses page.
+MIT — see [LICENSE](LICENSE). The launcher icon is an original isometric cube
+drawn for Xzifra by xzero and covered by the same MIT license; see
+`app/assets/icon/LICENSE-icon.txt` and the app's open-source licenses page.
