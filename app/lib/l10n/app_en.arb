@@ -242,7 +242,7 @@
   "settingsTemplatesSubtitle": "Save frequent expenses for quick entry",
   "settingsBackup": "Backup",
   "settingsExportJson": "Export JSON backup",
-  "settingsExportJsonSubtitle": "Full backup you can import later",
+  "settingsExportJsonSubtitle": "Records and data only. Use the full backup to include attachments.",
   "settingsExportCsv": "Export CSV",
   "settingsExportCsvSubtitle": "Open your expenses in a spreadsheet",
   "settingsImportJson": "Import JSON backup",
@@ -533,6 +533,33 @@
   "dashboardUpcomingReminders": "Upcoming reminders",
   "dashboardNoUpcomingRemindersTitle": "No upcoming reminders",
   "dashboardNoUpcomingRemindersMessage": "Add a reminder to see it here.",
+
+  "attachmentsTitle": "Attachments",
+  "attachmentsEmpty": "No files attached.",
+  "attachmentsAdd": "Add attachment",
+  "attachmentsCamera": "Camera",
+  "attachmentsGallery": "Gallery",
+  "attachmentsFile": "File",
+  "attachmentsSaveFirst": "Save first to attach files.",
+  "attachmentsDeleteTitle": "Delete attachment?",
+  "attachmentsDeleteMessage": "Delete \"{name}\"? This cannot be undone.",
+  "@attachmentsDeleteMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "attachmentsMissing": "This file is missing from the device.",
+  "attachmentsOpenError": "Could not open this file.",
+  "attachmentsAddError": "Could not add this attachment.",
+  "attachmentsTooLarge": "This file is too large. Attachments can be up to 25 MB.",
+
+  "settingsExportFullBackup": "Export full backup (ZIP)",
+  "settingsExportFullBackupSubtitle": "Records plus all attachment files",
+  "settingsImportFullBackup": "Import full backup (ZIP)",
+  "settingsImportFullBackupSubtitle": "Merge records and restore attachments",
+  "settingsFullBackupExportError": "Could not export the full backup.",
 
   "aboutTitle": "About",
   "aboutTagline": "A local-first expense tracker for Android.",

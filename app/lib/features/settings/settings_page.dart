@@ -159,6 +159,16 @@ class SettingsPage extends ConsumerWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
+                    leading: const Icon(Icons.folder_zip_outlined),
+                    title: Text(l10n.settingsExportFullBackup),
+                    subtitle: Text(l10n.settingsExportFullBackupSubtitle),
+                    onTap: () => _exportFullBackup(context, ref),
+                  ),
+                  const Divider(height: 1, indent: 56),
+                  ListTile(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     leading: const Icon(Icons.table_chart_outlined),
                     title: Text(l10n.settingsExportCsv),
                     subtitle: Text(l10n.settingsExportCsvSubtitle),
@@ -173,6 +183,16 @@ class SettingsPage extends ConsumerWidget {
                     title: Text(l10n.settingsImportJson),
                     subtitle: Text(l10n.settingsImportJsonSubtitle),
                     onTap: () => _importJson(context, ref),
+                  ),
+                  const Divider(height: 1, indent: 56),
+                  ListTile(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    leading: const Icon(Icons.unarchive_outlined),
+                    title: Text(l10n.settingsImportFullBackup),
+                    subtitle: Text(l10n.settingsImportFullBackupSubtitle),
+                    onTap: () => _importFullBackup(context, ref),
                   ),
                 ],
               ),
@@ -357,6 +377,20 @@ class SettingsPage extends ConsumerWidget {
     }
   }
 
+  Future<void> _exportFullBackup(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    try {
+      final service = ExportService(ref.read(databaseProvider));
+      final file = await service.createFullBackup();
+      await service.shareFile(file, subject: 'Xzifra full backup');
+    } catch (_) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.settingsFullBackupExportError)),
+      );
+    }
+  }
+
   Future<void> _exportCsv(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
@@ -366,6 +400,36 @@ class SettingsPage extends ConsumerWidget {
       await service.shareFile(file, subject: 'Xzifra CSV export');
     } catch (_) {
       messenger.showSnackBar(SnackBar(content: Text(l10n.settingsCsvError)));
+    }
+  }
+
+  Future<void> _importFullBackup(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    try {
+      final service = ExportService(ref.read(databaseProvider));
+      final summary = await service.importFullBackup();
+      if (summary == null) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            l10n.settingsImportProcessed(
+              summary.total,
+              summary.expenses,
+              summary.notes,
+              summary.bookmarks,
+              summary.recurringExpenses,
+              summary.reminders,
+            ),
+          ),
+        ),
+      );
+    } on FormatException {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.settingsImportInvalid)),
+      );
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.settingsImportError)));
     }
   }
 

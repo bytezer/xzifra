@@ -9,12 +9,21 @@ import 'package:share_plus/share_plus.dart';
 
 import '../core/tags.dart';
 import '../domain/money.dart';
+import 'attachment_service.dart';
+import 'attachment_storage.dart';
 import 'database.dart';
 
 class ExportService {
-  ExportService(this._database);
+  ExportService(
+    this._database, {
+    AttachmentStorage? storage,
+    Future<Directory> Function()? temporaryDirectory,
+  }) : _storage = storage ?? AttachmentStorage(),
+       _temporaryDirectory = temporaryDirectory ?? getTemporaryDirectory;
 
   final AppDatabase _database;
+  final AttachmentStorage _storage;
+  final Future<Directory> Function() _temporaryDirectory;
 
   Future<File> createJsonBackup() async {
     final data = await _database.exportJson();
@@ -79,6 +88,102 @@ class ExportService {
     return file;
   }
 
+  /// Creates a ZIP with the JSON backup (including attachment metadata) and
+  /// every attachment file under `attachments/`.
+  Future<File> createFullBackup() async {
+    final data = await _database.exportJson(includeAttachments: true);
+    final archive = Archive();
+    archive.addFile(
+      ArchiveFile.string(
+        'xzifra-backup.json',
+        const JsonEncoder.withIndent('  ').convert(data),
+      ),
+    );
+
+    final attachments = await _database.allAttachments();
+    for (final attachment in attachments) {
+      try {
+        final file = await _storage.resolve(attachment.relativePath);
+        if (!await file.exists()) continue;
+        archive.addFile(
+          ArchiveFile.bytes(attachment.relativePath, await file.readAsBytes()),
+        );
+      } catch (_) {
+        // Metadata is kept in the JSON; a missing file is skipped.
+      }
+    }
+
+    final file = await _tempFile('xzifra-full-backup', 'zip');
+    await file.writeAsBytes(ZipEncoder().encode(archive));
+    return file;
+  }
+
+  /// Imports a full ZIP backup: data first, then attachments whose files and
+  /// owners are present. Invalid or missing entries are skipped.
+  Future<ImportSummary> importFullBackupFile(File file) async {
+    return importFullBackupBytes(await file.readAsBytes());
+  }
+
+  Future<ImportSummary> importFullBackupBytes(List<int> bytes) async {
+    final base = await _temporaryDirectory();
+    final directory = await base.createTemp('xzifra-import-');
+    try {
+      final archive = ZipDecoder().decodeBytes(bytes);
+      for (final entry in archive) {
+        if (!entry.isFile) continue;
+        final relative = _safeArchivePath(entry.name);
+        if (relative == null) continue;
+        final file = File(p.join(directory.path, relative));
+        await file.parent.create(recursive: true);
+        await file.writeAsBytes(entry.content, flush: true);
+      }
+
+      final jsonFile = File(p.join(directory.path, 'xzifra-backup.json'));
+      if (!await jsonFile.exists()) {
+        throw const FormatException('Full backup is missing its JSON file.');
+      }
+      final decoded = jsonDecode(await jsonFile.readAsString());
+      if (decoded is! Map<String, dynamic>) {
+        throw const FormatException('Backup must be a JSON object.');
+      }
+      final summary = await _database.importJson(decoded);
+
+      final metadata = decoded['attachments'];
+      if (metadata is List) {
+        final service = AttachmentService(_database, _storage);
+        for (final raw in metadata) {
+          if (raw is! Map) continue;
+          final map = Map<String, dynamic>.from(raw);
+          final relative = map['relativePath'] as String?;
+          if (relative == null) continue;
+          final safe = _safeArchivePath(relative);
+          if (safe == null) continue;
+          final file = File(p.join(directory.path, safe));
+          if (!await file.exists()) continue;
+          await service.importAttachment(map, await file.readAsBytes());
+        }
+      }
+      return summary;
+    } finally {
+      try {
+        await directory.delete(recursive: true);
+      } catch (_) {
+        // Temporary data is best-effort cleanup.
+      }
+    }
+  }
+
+  /// Returns `null` when the user cancels the file picker.
+  Future<ImportSummary?> importFullBackup() async {
+    final files = await FilePicker.pickFiles(
+      dialogTitle: 'Select an Xzifra full backup',
+      type: FileType.custom,
+      allowedExtensions: ['zip'],
+    );
+    if (files.isEmpty) return null;
+    return importFullBackupBytes(await files.first.readAsBytes());
+  }
+
   /// Returns `null` when the user cancels the file picker.
   Future<ImportSummary?> importJsonBackup() async {
     final files = await FilePicker.pickFiles(
@@ -97,13 +202,23 @@ class ExportService {
   }
 
   Future<File> _tempFile(String prefix, String extension) async {
-    final directory = await getTemporaryDirectory();
+    final directory = await _temporaryDirectory();
     final stamp = DateTime.now()
         .toIso8601String()
         .replaceAll(':', '-')
         .split('.')
         .first;
     return File(p.join(directory.path, '$prefix-$stamp.$extension'));
+  }
+
+  String? _safeArchivePath(String name) {
+    final normalized = p.normalize(name);
+    if (p.isAbsolute(normalized) ||
+        normalized == '..' ||
+        normalized.startsWith('../')) {
+      return null;
+    }
+    return normalized;
   }
 
   String _escapeCsv(String value) {

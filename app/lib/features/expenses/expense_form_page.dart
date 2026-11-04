@@ -5,10 +5,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/l10n.dart';
 import '../../data/database.dart';
+import '../../domain/attachments.dart';
 import '../../domain/money.dart';
 import '../../domain/periods.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
+import '../attachments/attachments_section.dart';
 import 'widgets/amount_keypad.dart';
 
 /// The three ways the expense form can be opened.
@@ -321,6 +323,11 @@ class _ExpenseFormBodyState extends ConsumerState<_ExpenseFormBody> {
                 hintText: l10n.labelOptional,
                 counterText: '',
               ),
+            ),
+            const SizedBox(height: 20),
+            AttachmentsSection(
+              ownerType: AttachmentOwnerType.expense,
+              ownerId: _isEditing ? widget.initial!.expense.id : null,
             ),
           ],
         ),

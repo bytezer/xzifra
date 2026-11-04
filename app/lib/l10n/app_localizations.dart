@@ -1235,7 +1235,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsExportJsonSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Full backup you can import later'**
+  /// **'Records and data only. Use the full backup to include attachments.'**
   String get settingsExportJsonSubtitle;
 
   /// No description provided for @settingsExportCsv.
@@ -2054,6 +2054,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add a reminder to see it here.'**
   String get dashboardNoUpcomingRemindersMessage;
+
+  /// No description provided for @attachmentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachments'**
+  String get attachmentsTitle;
+
+  /// No description provided for @attachmentsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No files attached.'**
+  String get attachmentsEmpty;
+
+  /// No description provided for @attachmentsAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add attachment'**
+  String get attachmentsAdd;
+
+  /// No description provided for @attachmentsCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get attachmentsCamera;
+
+  /// No description provided for @attachmentsGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get attachmentsGallery;
+
+  /// No description provided for @attachmentsFile.
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get attachmentsFile;
+
+  /// No description provided for @attachmentsSaveFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Save first to attach files.'**
+  String get attachmentsSaveFirst;
+
+  /// No description provided for @attachmentsDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete attachment?'**
+  String get attachmentsDeleteTitle;
+
+  /// No description provided for @attachmentsDeleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"? This cannot be undone.'**
+  String attachmentsDeleteMessage(String name);
+
+  /// No description provided for @attachmentsMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'This file is missing from the device.'**
+  String get attachmentsMissing;
+
+  /// No description provided for @attachmentsOpenError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open this file.'**
+  String get attachmentsOpenError;
+
+  /// No description provided for @attachmentsAddError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not add this attachment.'**
+  String get attachmentsAddError;
+
+  /// No description provided for @attachmentsTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'This file is too large. Attachments can be up to 25 MB.'**
+  String get attachmentsTooLarge;
+
+  /// No description provided for @settingsExportFullBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Export full backup (ZIP)'**
+  String get settingsExportFullBackup;
+
+  /// No description provided for @settingsExportFullBackupSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Records plus all attachment files'**
+  String get settingsExportFullBackupSubtitle;
+
+  /// No description provided for @settingsImportFullBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Import full backup (ZIP)'**
+  String get settingsImportFullBackup;
+
+  /// No description provided for @settingsImportFullBackupSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge records and restore attachments'**
+  String get settingsImportFullBackupSubtitle;
+
+  /// No description provided for @settingsFullBackupExportError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not export the full backup.'**
+  String get settingsFullBackupExportError;
 
   /// No description provided for @aboutTitle.
   ///

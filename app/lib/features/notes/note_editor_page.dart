@@ -6,8 +6,10 @@ import 'package:go_router/go_router.dart';
 import '../../core/l10n.dart';
 import '../../core/tags.dart';
 import '../../data/export_service.dart';
+import '../../domain/attachments.dart';
 import '../../data/database.dart';
 import '../../providers.dart';
+import '../attachments/attachments_section.dart';
 
 class NoteEditorPage extends ConsumerWidget {
   const NoteEditorPage({super.key, this.noteId});
@@ -190,6 +192,11 @@ class _NoteFormState extends ConsumerState<_NoteForm> {
             title: Text(l10n.notesPinned),
             secondary: const Icon(Icons.push_pin_outlined),
           ),
+          const SizedBox(height: 8),
+          AttachmentsSection(
+            ownerType: AttachmentOwnerType.note,
+            ownerId: note?.id,
+          ),
         ],
       ),
       bottomNavigationBar: SafeArea(
@@ -270,6 +277,9 @@ class _NoteFormState extends ConsumerState<_NoteForm> {
       case _EditorAction.delete:
         final confirmed = await _confirmDelete(note);
         if (!confirmed) return;
+        await ref
+            .read(attachmentServiceProvider)
+            .deleteForOwner(AttachmentOwnerType.note, note.id);
         await database.deleteNote(note.id);
         if (mounted) context.pop();
     }

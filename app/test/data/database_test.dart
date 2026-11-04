@@ -3,6 +3,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite;
 import 'package:xzifra/data/database.dart';
+import 'package:xzifra/domain/attachments.dart';
 import 'package:xzifra/domain/periods.dart';
 import 'package:xzifra/domain/recurrence.dart';
 
@@ -435,6 +436,35 @@ void main() {
     expect(
       (await migrated.select(migrated.reminders).get()).single.title,
       'Call',
+    );
+  });
+
+  test('migrates v5 to v6 with the attachments table', () async {
+    final raw = sqlite.sqlite3.openInMemory();
+    raw.execute('''
+      CREATE TABLE settings_entries (
+        key TEXT NOT NULL PRIMARY KEY,
+        value TEXT NOT NULL
+      );
+    ''');
+    raw.execute('PRAGMA user_version = 5;');
+
+    final migrated = AppDatabase(NativeDatabase.opened(raw));
+    addTearDown(migrated.close);
+
+    expect(await migrated.select(migrated.attachments).get(), isEmpty);
+    await migrated.addAttachmentRecord(
+      id: 'attachment-1',
+      ownerType: AttachmentOwnerType.expense,
+      ownerId: 'expense-1',
+      relativePath: 'attachments/attachment-1.pdf',
+      fileName: 'receipt.pdf',
+      mimeType: 'application/pdf',
+      sizeBytes: 123,
+    );
+    expect(
+      (await migrated.select(migrated.attachments).get()).single.fileName,
+      'receipt.pdf',
     );
   });
 
@@ -1157,7 +1187,7 @@ void main() {
     );
 
     final backup = await database.exportJson();
-    expect(backup['schemaVersion'], 5);
+    expect(backup['schemaVersion'], 6);
     expect((backup['notes'] as List).length, 1);
     expect((backup['bookmarks'] as List).length, 1);
 
@@ -1209,7 +1239,7 @@ void main() {
       );
 
       final backup = await database.exportJson();
-      expect(backup['schemaVersion'], 5);
+      expect(backup['schemaVersion'], 6);
       expect((backup['recurringExpenses'] as List).length, 1);
       expect((backup['reminders'] as List).length, 1);
 

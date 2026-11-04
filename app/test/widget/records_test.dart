@@ -97,6 +97,37 @@ void main() {
     await _settle(tester);
     expect(find.text('Edit note'), findsOneWidget);
 
+    await tester.dragUntilVisible(
+      find.text('No files attached.'),
+      find.byType(ListView).last,
+      const Offset(0, -250),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('No files attached.'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(milliseconds: 20));
+  });
+
+  testWidgets('new expense asks to save before attaching files', (
+    tester,
+  ) async {
+    await _pumpApp(tester);
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await _settle(tester);
+    await tester.tap(find.text('Expense'));
+    await _settle(tester);
+    expect(find.text('New expense'), findsOneWidget);
+
+    await tester.dragUntilVisible(
+      find.text('Save first to attach files.'),
+      find.byType(ListView).last,
+      const Offset(0, -250),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Save first to attach files.'), findsOneWidget);
+
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(milliseconds: 20));
   });

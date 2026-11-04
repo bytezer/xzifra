@@ -4,7 +4,11 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import 'core/locale_settings.dart';
 import 'core/theme_settings.dart';
+import 'data/attachment_picker.dart';
+import 'data/attachment_service.dart';
+import 'data/attachment_storage.dart';
 import 'data/database.dart';
+import 'domain/attachments.dart';
 import 'domain/reports.dart';
 
 final databaseProvider = Provider<AppDatabase>((ref) {
@@ -113,6 +117,35 @@ final reminderByIdProvider = FutureProvider.family<Reminder?, String>((
 ) {
   return ref.watch(databaseProvider).getReminder(id);
 });
+
+final attachmentStorageProvider = Provider<AttachmentStorage>((ref) {
+  return AttachmentStorage();
+});
+
+final attachmentPickerProvider = Provider<AttachmentPicker>((ref) {
+  return DeviceAttachmentPicker();
+});
+
+final attachmentServiceProvider = Provider<AttachmentService>((ref) {
+  return AttachmentService(
+    ref.watch(databaseProvider),
+    ref.watch(attachmentStorageProvider),
+  );
+});
+
+typedef AttachmentQuery = ({AttachmentOwnerType ownerType, String ownerId});
+
+final attachmentsProvider =
+    StreamProvider.family<List<Attachment>, AttachmentQuery>((ref, query) {
+      return ref
+          .watch(databaseProvider)
+          .watchAttachments(query.ownerType, query.ownerId);
+    });
+
+final attachmentCountsProvider =
+    StreamProvider.family<Map<String, int>, AttachmentOwnerType>((ref, type) {
+      return ref.watch(databaseProvider).watchAttachmentCounts(type);
+    });
 
 final monthExpensesProvider =
     StreamProvider.family<List<ExpenseView>, ExpenseQuery>((ref, query) {

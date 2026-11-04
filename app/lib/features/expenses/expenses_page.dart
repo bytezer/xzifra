@@ -7,6 +7,7 @@ import '../../core/widgets/currency_selector.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/month_selector.dart';
 import '../../data/database.dart';
+import '../../domain/attachments.dart';
 import '../../domain/money.dart';
 import '../../domain/periods.dart';
 import '../../domain/reports.dart';
@@ -51,6 +52,12 @@ class _ExpensesTabState extends ConsumerState<ExpensesTab> {
 
     final categoriesById = {for (final item in categories) item.id: item};
     final methodsById = {for (final item in paymentMethods) item.id: item};
+    final attachmentCounts =
+        ref
+            .watch(attachmentCountsProvider(AttachmentOwnerType.expense))
+            .asData
+            ?.value ??
+        const <String, int>{};
     final hasFilters = _categoryId != null || _paymentMethodId != null;
 
     final grouped = <String, List<ExpenseView>>{};
@@ -169,6 +176,8 @@ class _ExpensesTabState extends ConsumerState<ExpensesTab> {
                           _ExpenseTile(
                             item: item,
                             currency: currency,
+                            attachmentCount:
+                                attachmentCounts[item.expense.id] ?? 0,
                             onDelete: () => _delete(item),
                             onLongPress: () => _showActions(item),
                           ),
@@ -271,6 +280,9 @@ class _ExpensesTabState extends ConsumerState<ExpensesTab> {
   }
 
   Future<void> _delete(ExpenseView item) async {
+    await ref
+        .read(attachmentServiceProvider)
+        .deleteForOwner(AttachmentOwnerType.expense, item.expense.id);
     await ref.read(databaseProvider).deleteExpense(item.expense.id);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -388,12 +400,14 @@ class _ExpenseTile extends StatelessWidget {
   const _ExpenseTile({
     required this.item,
     required this.currency,
+    required this.attachmentCount,
     required this.onDelete,
     required this.onLongPress,
   });
 
   final ExpenseView item;
   final String currency;
+  final int attachmentCount;
   final VoidCallback onDelete;
   final VoidCallback onLongPress;
 
@@ -464,15 +478,34 @@ class _ExpenseTile extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-            trailing: Text(
-              Money.format(
-                item.expense.amountCents,
-                currency,
-                locale: localeNameOf(context),
-              ),
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (attachmentCount > 0) ...[
+                  Icon(
+                    Icons.attach_file,
+                    size: 15,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  Text(
+                    '$attachmentCount',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                ],
+                Text(
+                  Money.format(
+                    item.expense.amountCents,
+                    currency,
+                    locale: localeNameOf(context),
+                  ),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
             onTap: () => context.push('/expenses/${item.expense.id}/edit'),
           ),

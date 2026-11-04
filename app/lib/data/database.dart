@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:uuid/uuid.dart';
 
+import '../domain/attachments.dart';
 import '../domain/money.dart';
 import '../domain/recurrence.dart';
 import '../domain/reports.dart';
@@ -166,6 +167,25 @@ class Reminders extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+@TableIndex(name: 'idx_attachments_owner', columns: {#ownerType, #ownerId})
+class Attachments extends Table {
+  TextColumn get id => text()();
+
+  /// One of expense, note, reminder or bookmark.
+  TextColumn get ownerType => text()();
+  TextColumn get ownerId => text()();
+
+  /// Path relative to the app documents directory, e.g. `attachments/...`.
+  TextColumn get relativePath => text()();
+  TextColumn get fileName => text()();
+  TextColumn get mimeType => text()();
+  IntColumn get sizeBytes => integer()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 class SettingsEntries extends Table {
   TextColumn get key => text()();
   TextColumn get value => text()();
@@ -228,6 +248,7 @@ class ImportSummary {
     Bookmarks,
     RecurringExpenses,
     Reminders,
+    Attachments,
     SettingsEntries,
   ],
 )
@@ -237,7 +258,7 @@ class AppDatabase extends _$AppDatabase {
   static const _uuid = Uuid();
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -261,6 +282,9 @@ class AppDatabase extends _$AppDatabase {
         await m.createTable(recurringExpenses);
         await m.createTable(reminders);
         await m.addColumn(expenses, expenses.recurringId);
+      }
+      if (from < 6) {
+        await m.createTable(attachments);
       }
     },
     beforeOpen: (details) async {
@@ -602,6 +626,120 @@ class AppDatabase extends _$AppDatabase {
     final count = reminders.id.count();
     final row = await (selectOnly(reminders)..addColumns([count])).getSingle();
     return row.read(count) ?? 0;
+  }
+
+  Stream<List<Attachment>> watchAttachments(
+    AttachmentOwnerType ownerType,
+    String ownerId,
+  ) {
+    return (select(attachments)
+          ..where(
+            (t) =>
+                t.ownerType.equals(ownerType.storageValue) &
+                t.ownerId.equals(ownerId),
+          )
+          ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
+        .watch();
+  }
+
+  Future<List<Attachment>> attachmentsForOwner(
+    AttachmentOwnerType ownerType,
+    String ownerId,
+  ) {
+    return (select(attachments)
+          ..where(
+            (t) =>
+                t.ownerType.equals(ownerType.storageValue) &
+                t.ownerId.equals(ownerId),
+          )
+          ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
+        .get();
+  }
+
+  Future<List<Attachment>> allAttachments() {
+    return (select(
+      attachments,
+    )..orderBy([(t) => OrderingTerm.asc(t.createdAt)])).get();
+  }
+
+  Future<Attachment?> getAttachment(String id) {
+    return (select(
+      attachments,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+  }
+
+  Stream<Map<String, int>> watchAttachmentCounts(
+    AttachmentOwnerType ownerType,
+  ) {
+    return customSelect(
+      'SELECT owner_id, COUNT(*) AS entry_count FROM attachments '
+      'WHERE owner_type = ? GROUP BY owner_id',
+      variables: [Variable.withString(ownerType.storageValue)],
+      readsFrom: {attachments},
+    ).watch().map(
+      (rows) => {
+        for (final row in rows)
+          row.read<String>('owner_id'): row.read<int>('entry_count'),
+      },
+    );
+  }
+
+  Future<bool> attachmentOwnerExists(
+    AttachmentOwnerType ownerType,
+    String ownerId,
+  ) async {
+    final count = const CustomExpression<int>('COUNT(*)');
+    final row = await switch (ownerType) {
+      AttachmentOwnerType.expense =>
+        (selectOnly(expenses)
+              ..addColumns([count])
+              ..where(expenses.id.equals(ownerId)))
+            .getSingle(),
+      AttachmentOwnerType.note =>
+        (selectOnly(notes)
+              ..addColumns([count])
+              ..where(notes.id.equals(ownerId)))
+            .getSingle(),
+      AttachmentOwnerType.reminder =>
+        (selectOnly(reminders)
+              ..addColumns([count])
+              ..where(reminders.id.equals(ownerId)))
+            .getSingle(),
+      AttachmentOwnerType.bookmark =>
+        (selectOnly(bookmarks)
+              ..addColumns([count])
+              ..where(bookmarks.id.equals(ownerId)))
+            .getSingle(),
+    };
+    return (row.read(count) ?? 0) > 0;
+  }
+
+  Future<void> addAttachmentRecord({
+    required String id,
+    required AttachmentOwnerType ownerType,
+    required String ownerId,
+    required String relativePath,
+    required String fileName,
+    required String mimeType,
+    required int sizeBytes,
+  }) async {
+    await into(attachments).insert(
+      AttachmentsCompanion.insert(
+        id: id,
+        ownerType: ownerType.storageValue,
+        ownerId: ownerId,
+        relativePath: relativePath,
+        fileName: fileName,
+        mimeType: mimeType,
+        sizeBytes: sizeBytes,
+        createdAt: DateTime.now(),
+      ),
+      mode: InsertMode.insertOrIgnore,
+    );
+  }
+
+  Future<void> deleteAttachmentRecord(String id) async {
+    await (delete(attachments)..where((t) => t.id.equals(id))).go();
   }
 
   /// Case-insensitive [LIKE] search across notes, bookmarks and expenses.
@@ -1390,7 +1528,9 @@ class AppDatabase extends _$AppDatabase {
   // Backup
   // ---------------------------------------------------------------------------
 
-  Future<Map<String, dynamic>> exportJson() async {
+  Future<Map<String, dynamic>> exportJson({
+    bool includeAttachments = false,
+  }) async {
     final categoryRows = await select(categories).get();
     final methodRows = await select(paymentMethods).get();
     final expenseRows = await select(expenses).get();
@@ -1399,6 +1539,9 @@ class AppDatabase extends _$AppDatabase {
     final bookmarkRows = await select(bookmarks).get();
     final recurringRows = await select(recurringExpenses).get();
     final reminderRows = await select(reminders).get();
+    final List<Attachment> attachmentRows = includeAttachments
+        ? await select(attachments).get()
+        : const [];
     final settingRows = await select(settingsEntries).get();
 
     return {
@@ -1518,6 +1661,20 @@ class AppDatabase extends _$AppDatabase {
             'updatedAt': row.updatedAt.toUtc().toIso8601String(),
           },
       ],
+      if (includeAttachments)
+        'attachments': [
+          for (final row in attachmentRows)
+            {
+              'id': row.id,
+              'ownerType': row.ownerType,
+              'ownerId': row.ownerId,
+              'relativePath': row.relativePath,
+              'fileName': row.fileName,
+              'mimeType': row.mimeType,
+              'sizeBytes': row.sizeBytes,
+              'createdAt': row.createdAt.toUtc().toIso8601String(),
+            },
+        ],
     };
   }
 

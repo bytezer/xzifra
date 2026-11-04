@@ -8,7 +8,9 @@ import '../../core/notifications.dart';
 import '../../core/recurrence_labels.dart';
 import '../../core/tags.dart';
 import '../../data/database.dart';
+import '../../domain/attachments.dart';
 import '../../providers.dart';
+import '../attachments/attachments_section.dart';
 
 class ReminderEditorPage extends ConsumerWidget {
   const ReminderEditorPage({super.key, this.reminderId});
@@ -192,6 +194,11 @@ class _ReminderFormState extends ConsumerState<_ReminderForm> {
               counterText: '',
             ),
           ),
+          const SizedBox(height: 8),
+          AttachmentsSection(
+            ownerType: AttachmentOwnerType.reminder,
+            ownerId: widget.initial?.id,
+          ),
         ],
       ),
       bottomNavigationBar: SafeArea(
@@ -333,6 +340,9 @@ class _ReminderFormState extends ConsumerState<_ReminderForm> {
         );
         if (confirmed != true) return;
         await NotificationService.instance.cancelReminder(reminder.id);
+        await ref
+            .read(attachmentServiceProvider)
+            .deleteForOwner(AttachmentOwnerType.reminder, reminder.id);
         await ref.read(databaseProvider).deleteReminder(reminder.id);
         if (mounted) context.pop();
     }

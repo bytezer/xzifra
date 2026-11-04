@@ -8,6 +8,7 @@ import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/tag_chips.dart';
 import '../../data/database.dart';
 import '../../data/export_service.dart';
+import '../../domain/attachments.dart';
 import '../../providers.dart';
 
 class NotesTab extends ConsumerStatefulWidget {
@@ -33,6 +34,12 @@ class _NotesTabState extends ConsumerState<NotesTab> {
     final active = visible.where((note) => note.archivedAt == null).toList();
     final archived = visible.where((note) => note.archivedAt != null).toList();
     final tags = collectTags(allNotes.map((note) => parseTags(note.tags)));
+    final attachmentCounts =
+        ref
+            .watch(attachmentCountsProvider(AttachmentOwnerType.note))
+            .asData
+            ?.value ??
+        const <String, int>{};
 
     return SafeArea(
       top: false,
@@ -86,6 +93,7 @@ class _NotesTabState extends ConsumerState<NotesTab> {
                       for (final note in active) ...[
                         _NoteTile(
                           note: note,
+                          attachmentCount: attachmentCounts[note.id] ?? 0,
                           onTap: () => context.push('/notes/${note.id}/edit'),
                           onAction: (action) => _handleAction(note, action),
                         ),
@@ -104,6 +112,7 @@ class _NotesTabState extends ConsumerState<NotesTab> {
                         for (final note in archived) ...[
                           _NoteTile(
                             note: note,
+                            attachmentCount: attachmentCounts[note.id] ?? 0,
                             onTap: () => context.push('/notes/${note.id}/edit'),
                             onAction: (action) => _handleAction(note, action),
                           ),
@@ -140,6 +149,9 @@ class _NotesTabState extends ConsumerState<NotesTab> {
       case _NoteAction.delete:
         final confirmed = await _confirmDelete(note);
         if (!confirmed) return;
+        await ref
+            .read(attachmentServiceProvider)
+            .deleteForOwner(AttachmentOwnerType.note, note.id);
         await database.deleteNote(note.id);
         if (!mounted) return;
         _showMessage(context.l10n.notesDeleted);
@@ -192,11 +204,13 @@ enum _NoteAction { pin, export, archive, delete }
 class _NoteTile extends StatelessWidget {
   const _NoteTile({
     required this.note,
+    required this.attachmentCount,
     required this.onTap,
     required this.onAction,
   });
 
   final Note note;
+  final int attachmentCount;
   final VoidCallback onTap;
   final ValueChanged<_NoteAction> onAction;
 

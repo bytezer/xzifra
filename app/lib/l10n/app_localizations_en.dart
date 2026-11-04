@@ -600,7 +600,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsExportJson => 'Export JSON backup';
 
   @override
-  String get settingsExportJsonSubtitle => 'Full backup you can import later';
+  String get settingsExportJsonSubtitle =>
+      'Records and data only. Use the full backup to include attachments.';
 
   @override
   String get settingsExportCsv => 'Export CSV';
@@ -1106,6 +1107,66 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dashboardNoUpcomingRemindersMessage =>
       'Add a reminder to see it here.';
+
+  @override
+  String get attachmentsTitle => 'Attachments';
+
+  @override
+  String get attachmentsEmpty => 'No files attached.';
+
+  @override
+  String get attachmentsAdd => 'Add attachment';
+
+  @override
+  String get attachmentsCamera => 'Camera';
+
+  @override
+  String get attachmentsGallery => 'Gallery';
+
+  @override
+  String get attachmentsFile => 'File';
+
+  @override
+  String get attachmentsSaveFirst => 'Save first to attach files.';
+
+  @override
+  String get attachmentsDeleteTitle => 'Delete attachment?';
+
+  @override
+  String attachmentsDeleteMessage(String name) {
+    return 'Delete \"$name\"? This cannot be undone.';
+  }
+
+  @override
+  String get attachmentsMissing => 'This file is missing from the device.';
+
+  @override
+  String get attachmentsOpenError => 'Could not open this file.';
+
+  @override
+  String get attachmentsAddError => 'Could not add this attachment.';
+
+  @override
+  String get attachmentsTooLarge =>
+      'This file is too large. Attachments can be up to 25 MB.';
+
+  @override
+  String get settingsExportFullBackup => 'Export full backup (ZIP)';
+
+  @override
+  String get settingsExportFullBackupSubtitle =>
+      'Records plus all attachment files';
+
+  @override
+  String get settingsImportFullBackup => 'Import full backup (ZIP)';
+
+  @override
+  String get settingsImportFullBackupSubtitle =>
+      'Merge records and restore attachments';
+
+  @override
+  String get settingsFullBackupExportError =>
+      'Could not export the full backup.';
 
   @override
   String get aboutTitle => 'About';

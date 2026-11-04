@@ -9,6 +9,7 @@ import '../../core/tags.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/tag_chips.dart';
 import '../../data/database.dart';
+import '../../domain/attachments.dart';
 import '../../providers.dart';
 
 class RemindersTab extends ConsumerStatefulWidget {
@@ -116,6 +117,12 @@ class _RemindersTabState extends ConsumerState<RemindersTab> {
   }) {
     if (items.isEmpty) return const SizedBox.shrink();
     final theme = Theme.of(context);
+    final attachmentCounts =
+        ref
+            .watch(attachmentCountsProvider(AttachmentOwnerType.reminder))
+            .asData
+            ?.value ??
+        const <String, int>{};
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -134,6 +141,7 @@ class _RemindersTabState extends ConsumerState<RemindersTab> {
           _ReminderTile(
             reminder: reminder,
             overdue: overdueStyle,
+            attachmentCount: attachmentCounts[reminder.id] ?? 0,
             onToggleDone: () => _toggleDone(reminder),
             onTap: () => context.push('/reminders/${reminder.id}/edit'),
             onAction: (action) => _handleAction(reminder, action),
@@ -166,6 +174,9 @@ class _RemindersTabState extends ConsumerState<RemindersTab> {
         if (!confirmed) return;
         final database = ref.read(databaseProvider);
         await NotificationService.instance.cancelReminder(reminder.id);
+        await ref
+            .read(attachmentServiceProvider)
+            .deleteForOwner(AttachmentOwnerType.reminder, reminder.id);
         await database.deleteReminder(reminder.id);
         if (!mounted) return;
         ScaffoldMessenger.of(
@@ -202,6 +213,7 @@ class _ReminderTile extends StatelessWidget {
   const _ReminderTile({
     required this.reminder,
     required this.overdue,
+    required this.attachmentCount,
     required this.onToggleDone,
     required this.onTap,
     required this.onAction,
@@ -209,6 +221,7 @@ class _ReminderTile extends StatelessWidget {
 
   final Reminder reminder;
   final bool overdue;
+  final int attachmentCount;
   final VoidCallback onToggleDone;
   final VoidCallback onTap;
   final ValueChanged<_ReminderAction> onAction;

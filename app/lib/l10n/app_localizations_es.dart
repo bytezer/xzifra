@@ -605,7 +605,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settingsExportJsonSubtitle =>
-      'Copia completa que puedes importar después';
+      'Solo registros y datos. Usa la copia completa para incluir adjuntos.';
 
   @override
   String get settingsExportCsv => 'Exportar CSV';
@@ -1112,6 +1112,66 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get dashboardNoUpcomingRemindersMessage =>
       'Agrega un recordatorio para verlo aquí.';
+
+  @override
+  String get attachmentsTitle => 'Archivos adjuntos';
+
+  @override
+  String get attachmentsEmpty => 'No hay archivos adjuntos.';
+
+  @override
+  String get attachmentsAdd => 'Agregar adjunto';
+
+  @override
+  String get attachmentsCamera => 'Cámara';
+
+  @override
+  String get attachmentsGallery => 'Galería';
+
+  @override
+  String get attachmentsFile => 'Archivo';
+
+  @override
+  String get attachmentsSaveFirst => 'Guarda primero para adjuntar archivos.';
+
+  @override
+  String get attachmentsDeleteTitle => '¿Eliminar adjunto?';
+
+  @override
+  String attachmentsDeleteMessage(String name) {
+    return '¿Eliminar \"$name\"? Esto no se puede deshacer.';
+  }
+
+  @override
+  String get attachmentsMissing => 'Este archivo no está en el dispositivo.';
+
+  @override
+  String get attachmentsOpenError => 'No se pudo abrir este archivo.';
+
+  @override
+  String get attachmentsAddError => 'No se pudo agregar este adjunto.';
+
+  @override
+  String get attachmentsTooLarge =>
+      'Este archivo es demasiado grande. Los adjuntos pueden pesar hasta 25 MB.';
+
+  @override
+  String get settingsExportFullBackup => 'Exportar copia completa (ZIP)';
+
+  @override
+  String get settingsExportFullBackupSubtitle =>
+      'Registros y todos los archivos adjuntos';
+
+  @override
+  String get settingsImportFullBackup => 'Importar copia completa (ZIP)';
+
+  @override
+  String get settingsImportFullBackupSubtitle =>
+      'Combina registros y restaura los adjuntos';
+
+  @override
+  String get settingsFullBackupExportError =>
+      'No se pudo exportar la copia completa.';
 
   @override
   String get aboutTitle => 'Acerca de';
