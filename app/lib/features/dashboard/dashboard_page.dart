@@ -12,6 +12,7 @@ import '../../domain/money.dart';
 import '../../domain/periods.dart';
 import '../../domain/reports.dart';
 import '../../providers.dart';
+import '../bookmarks/bookmark_launcher.dart';
 
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
@@ -49,6 +50,11 @@ class DashboardPage extends ConsumerWidget {
     final recent =
         ref.watch(recentExpensesProvider(currency)).asData?.value ??
         const <ExpenseView>[];
+    final recentNotes =
+        ref.watch(recentNotesProvider(3)).asData?.value ?? const <Note>[];
+    final recentBookmarks =
+        ref.watch(recentBookmarksProvider(3)).asData?.value ??
+        const <Bookmark>[];
     final categories =
         ref.watch(allCategoriesProvider).asData?.value ?? const <Category>[];
 
@@ -61,7 +67,16 @@ class DashboardPage extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
           children: [
-            const MonthSelector(alignStart: true),
+            Row(
+              children: [
+                const Expanded(child: MonthSelector(alignStart: true)),
+                IconButton(
+                  onPressed: () => context.push('/search'),
+                  tooltip: context.l10n.actionSearch,
+                  icon: const Icon(Icons.search),
+                ),
+              ],
+            ),
             const SizedBox(height: 8),
             _TotalCard(
               total: total,
@@ -102,7 +117,7 @@ class DashboardPage extends ConsumerWidget {
               trailing: recent.isEmpty
                   ? null
                   : TextButton(
-                      onPressed: () => context.go('/expenses'),
+                      onPressed: () => context.go('/records?tab=expenses'),
                       child: Text(context.l10n.dashboardViewAll),
                     ),
               child: recent.isEmpty
@@ -128,6 +143,52 @@ class DashboardPage extends ConsumerWidget {
                             label: Text(context.l10n.dashboardRepeatLast),
                           ),
                         ),
+                      ],
+                    ),
+            ),
+            const SizedBox(height: 16),
+            SectionCard(
+              title: context.l10n.dashboardRecentNotes,
+              trailing: TextButton(
+                onPressed: () => context.go('/records?tab=notes'),
+                child: Text(context.l10n.dashboardViewAll),
+              ),
+              child: recentNotes.isEmpty
+                  ? EmptyState(
+                      icon: Icons.sticky_note_2_outlined,
+                      title: context.l10n.dashboardNothingNotesTitle,
+                      message: context.l10n.dashboardNothingNotesMessage,
+                    )
+                  : Column(
+                      children: [
+                        for (final note in recentNotes) ...[
+                          _RecentNoteRow(note: note),
+                          if (note != recentNotes.last)
+                            const Divider(height: 1),
+                        ],
+                      ],
+                    ),
+            ),
+            const SizedBox(height: 16),
+            SectionCard(
+              title: context.l10n.dashboardBookmarks,
+              trailing: TextButton(
+                onPressed: () => context.go('/records?tab=bookmarks'),
+                child: Text(context.l10n.dashboardViewAll),
+              ),
+              child: recentBookmarks.isEmpty
+                  ? EmptyState(
+                      icon: Icons.bookmark_border,
+                      title: context.l10n.dashboardNothingBookmarksTitle,
+                      message: context.l10n.dashboardNothingBookmarksMessage,
+                    )
+                  : Column(
+                      children: [
+                        for (final bookmark in recentBookmarks) ...[
+                          _RecentBookmarkRow(bookmark: bookmark),
+                          if (bookmark != recentBookmarks.last)
+                            const Divider(height: 1),
+                        ],
                       ],
                     ),
             ),
@@ -413,6 +474,113 @@ class _RecentRow extends StatelessWidget {
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RecentNoteRow extends StatelessWidget {
+  const _RecentNoteRow({required this.note});
+
+  final Note note;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final body = note.body.trim();
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: () => context.push('/notes/${note.id}/edit'),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Icon(
+              note.pinned ? Icons.push_pin : Icons.sticky_note_2_outlined,
+              size: 20,
+              color: note.pinned
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    note.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  if (body.isNotEmpty)
+                    Text(
+                      body,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RecentBookmarkRow extends StatelessWidget {
+  const _RecentBookmarkRow({required this.bookmark});
+
+  final Bookmark bookmark;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: () => openBookmark(context, bookmark.url),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Icon(
+              Icons.bookmark_outline,
+              size: 20,
+              color: theme.colorScheme.primary,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    bookmarkLabel(bookmark),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  Text(
+                    bookmark.url,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.open_in_new,
+              size: 16,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ],
         ),

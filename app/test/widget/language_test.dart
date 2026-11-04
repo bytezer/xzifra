@@ -49,10 +49,16 @@ void main() {
 
     expect(await database.getSetting('locale'), 'es');
     expect(find.text('Inicio'), findsOneWidget);
-    expect(find.text('Gastos'), findsOneWidget);
+    expect(find.text('Registros'), findsOneWidget);
     expect(find.text('Reportes'), findsOneWidget);
     expect(find.text('Ajustes'), findsWidgets);
     expect(find.text('Idioma'), findsOneWidget);
+
+    await tester.tap(find.text('Registros'));
+    await _settle(tester);
+    expect(find.text('Gastos'), findsOneWidget);
+    expect(find.text('Notas'), findsOneWidget);
+    expect(find.text('Marcadores'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
     await tester.pumpWidget(const SizedBox.shrink());

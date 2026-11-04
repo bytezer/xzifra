@@ -53,6 +53,8 @@ void main() {
 
     await tester.tap(find.byType(FloatingActionButton));
     await _settle(tester);
+    await tester.tap(find.text('Expense'));
+    await _settle(tester);
 
     expect(find.text('New expense'), findsOneWidget);
     expect(find.text('Save & add another'), findsOneWidget);

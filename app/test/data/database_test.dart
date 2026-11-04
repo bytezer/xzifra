@@ -204,6 +204,201 @@ void main() {
     expect(templates.single.note, 'Weekly');
   });
 
+  test('migrates v3 to v4 by adding notes and bookmarks', () async {
+    final raw = sqlite.sqlite3.openInMemory();
+    raw.execute('''
+      CREATE TABLE categories (
+        id TEXT NOT NULL PRIMARY KEY,
+        name TEXT NOT NULL,
+        icon TEXT NOT NULL DEFAULT '📦',
+        color INTEGER NOT NULL,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        archived_at INTEGER NULL
+      );
+    ''');
+    raw.execute('''
+      CREATE TABLE payment_methods (
+        id TEXT NOT NULL PRIMARY KEY,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        icon TEXT NOT NULL DEFAULT '💳',
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        archived_at INTEGER NULL
+      );
+    ''');
+    raw.execute('''
+      CREATE TABLE settings_entries (
+        key TEXT NOT NULL PRIMARY KEY,
+        value TEXT NOT NULL
+      );
+    ''');
+    raw.execute('PRAGMA user_version = 3;');
+
+    final migrated = AppDatabase(NativeDatabase.opened(raw));
+    addTearDown(migrated.close);
+
+    expect(await migrated.select(migrated.notes).get(), isEmpty);
+    expect(await migrated.select(migrated.bookmarks).get(), isEmpty);
+
+    await migrated.addNote(title: 'First note', body: 'Hello', tags: 'test');
+    await migrated.addBookmark(
+      url: 'https://example.com',
+      title: 'Example',
+      tags: 'test',
+    );
+    expect(
+      (await migrated.select(migrated.notes).get()).single.title,
+      'First note',
+    );
+    expect(
+      (await migrated.select(migrated.bookmarks).get()).single.url,
+      'https://example.com',
+    );
+  });
+
+  test('creates, pins, archives, searches and deletes notes', () async {
+    await database.addNote(
+      title: 'Groceries list',
+      body: 'milk and bread',
+      tags: 'home, shopping',
+    );
+    await database.addNote(
+      title: 'Idea',
+      body: 'Write about Markdown',
+      tags: 'writing',
+      pinned: true,
+    );
+
+    var notes = await database.watchNotes().first;
+    expect(notes.map((note) => note.title).toList(), [
+      'Idea',
+      'Groceries list',
+    ]);
+    expect(notes.first.pinned, isTrue);
+
+    final groceries = notes.firstWhere(
+      (note) => note.title == 'Groceries list',
+    );
+    final idea = notes.firstWhere((note) => note.title == 'Idea');
+    expect((await database.searchNotes('markdown')).single.title, 'Idea');
+    expect(
+      (await database.searchNotes('shopping')).single.title,
+      'Groceries list',
+    );
+    expect((await database.searchNotes('milk')).single.title, 'Groceries list');
+
+    await database.setNotePinned(idea.id, pinned: false);
+    notes = await database.watchNotes().first;
+    expect(notes.first.title, 'Groceries list');
+
+    await database.updateNote(
+      idea.id,
+      title: 'Idea v2',
+      body: 'Updated body',
+      tags: 'writing, ideas',
+      pinned: true,
+    );
+    final updated = await database.getNote(idea.id);
+    expect(updated?.title, 'Idea v2');
+    expect(updated?.tags, 'writing, ideas');
+    expect(updated?.pinned, isTrue);
+
+    await database.setNoteArchived(groceries.id, archived: true);
+    expect((await database.watchNotes().first).length, 1);
+    expect((await database.watchNotes(includeArchived: true).first).length, 2);
+    expect(await database.searchNotes('milk'), isEmpty);
+
+    await database.deleteNote(groceries.id);
+    expect(await database.getNote(groceries.id), isNull);
+    expect((await database.watchNotes(includeArchived: true).first).length, 1);
+  });
+
+  test('creates, archives, searches and deletes bookmarks', () async {
+    await database.addBookmark(
+      url: 'https://example.com/flutter',
+      title: 'Flutter docs',
+      note: 'Widgets and layouts',
+      tags: 'dev, flutter',
+    );
+    await database.addBookmark(
+      url: 'https://news.example.com',
+      title: 'Daily news',
+      tags: 'reading',
+    );
+
+    final bookmarks = await database.watchBookmarks().first;
+    expect(bookmarks.length, 2);
+    expect(
+      (await database.searchBookmarks('flutter')).single.title,
+      'Flutter docs',
+    );
+    expect(
+      (await database.searchBookmarks('layouts')).single.title,
+      'Flutter docs',
+    );
+    expect(
+      (await database.searchBookmarks('reading')).single.title,
+      'Daily news',
+    );
+
+    final docs = bookmarks.firstWhere(
+      (bookmark) => bookmark.title == 'Flutter docs',
+    );
+    await database.updateBookmark(
+      docs.id,
+      url: 'https://docs.flutter.dev',
+      title: 'Flutter',
+      note: 'Official documentation',
+      tags: 'dev',
+    );
+    final updated = await database.getBookmark(docs.id);
+    expect(updated?.url, 'https://docs.flutter.dev');
+    expect(updated?.note, 'Official documentation');
+
+    await database.setBookmarkArchived(docs.id, archived: true);
+    expect((await database.watchBookmarks().first).length, 1);
+    expect(
+      (await database.watchBookmarks(includeArchived: true).first).length,
+      2,
+    );
+    expect(await database.searchBookmarks('flutter'), isEmpty);
+
+    await database.deleteBookmark(docs.id);
+    expect(await database.getBookmark(docs.id), isNull);
+    expect(
+      (await database.watchBookmarks(includeArchived: true).first).length,
+      1,
+    );
+  });
+
+  test('search expenses by note, category and date', () async {
+    final food = await categoryNamed('Food');
+    final cash = await methodNamed('Cash');
+    await database.addExpense(
+      amountCents: 1250,
+      currency: 'PEN',
+      date: '2026-11-02',
+      categoryId: food.id,
+      paymentMethodId: cash.id,
+      note: 'Lunch with Ana',
+    );
+
+    expect(
+      (await database.searchExpenses('ana')).single.expense.note,
+      'Lunch with Ana',
+    );
+    expect(
+      (await database.searchExpenses('food')).single.category.name,
+      'Food',
+    );
+    expect(
+      (await database.searchExpenses('cash')).single.paymentMethod?.name,
+      'Cash',
+    );
+    expect((await database.searchExpenses('2026-11-02')).length, 1);
+    expect(await database.searchExpenses('nothing'), isEmpty);
+  });
+
   test('aggregates totals by category, month and payment method', () async {
     final food = await categoryNamed('Food');
     final cash = await methodNamed('Cash');
@@ -560,6 +755,62 @@ void main() {
     expect(templates.single.amountCents, 1250);
     expect(templates.single.paymentMethodId, cash.id);
     expect(templates.single.note, 'Lunch');
+  });
+
+  test('export and import round-trip includes notes and bookmarks', () async {
+    await database.addNote(
+      title: 'Packing list',
+      body: 'Passport and charger',
+      tags: 'travel, personal',
+      pinned: true,
+    );
+    await database.addBookmark(
+      url: 'https://example.com/guide',
+      title: 'Travel guide',
+      note: 'Read before the trip',
+      tags: 'travel',
+    );
+
+    final backup = await database.exportJson();
+    expect(backup['schemaVersion'], 4);
+    expect((backup['notes'] as List).length, 1);
+    expect((backup['bookmarks'] as List).length, 1);
+
+    final restored = AppDatabase(NativeDatabase.memory());
+    addTearDown(restored.close);
+
+    final summary = await restored.importJson(backup);
+    expect(summary.notes, 1);
+    expect(summary.bookmarks, 1);
+    expect(summary.notes + summary.bookmarks, 2);
+
+    final notes = await restored.select(restored.notes).get();
+    expect(notes.single.title, 'Packing list');
+    expect(notes.single.body, 'Passport and charger');
+    expect(notes.single.tags, 'travel, personal');
+    expect(notes.single.pinned, isTrue);
+
+    final bookmarks = await restored.select(restored.bookmarks).get();
+    expect(bookmarks.single.url, 'https://example.com/guide');
+    expect(bookmarks.single.title, 'Travel guide');
+    expect(bookmarks.single.note, 'Read before the trip');
+    expect(bookmarks.single.tags, 'travel');
+  });
+
+  test('imports an old backup without notes or bookmarks', () async {
+    final backup = await database.exportJson();
+    backup.remove('notes');
+    backup.remove('bookmarks');
+    backup['expenses'] = const [];
+
+    final restored = AppDatabase(NativeDatabase.memory());
+    addTearDown(restored.close);
+
+    final summary = await restored.importJson(backup);
+    expect(summary.notes, 0);
+    expect(summary.bookmarks, 0);
+    expect(await restored.select(restored.notes).get(), isEmpty);
+    expect(await restored.select(restored.bookmarks).get(), isEmpty);
   });
 
   test('imports an old backup without templates', () async {

@@ -43,6 +43,8 @@ void main() {
 
     await tester.tap(find.byType(FloatingActionButton));
     await _settle(tester);
+    await tester.tap(find.text('Expense'));
+    await _settle(tester);
     expect(find.text('New expense'), findsOneWidget);
 
     for (final key in ['1', '2', '.', '5']) {

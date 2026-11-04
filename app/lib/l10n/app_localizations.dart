@@ -116,6 +116,12 @@ abstract class AppLocalizations {
   /// **'Expenses'**
   String get navExpenses;
 
+  /// No description provided for @navRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Records'**
+  String get navRecords;
+
   /// No description provided for @navReports.
   ///
   /// In en, this message translates to:
@@ -200,6 +206,12 @@ abstract class AppLocalizations {
   /// **'Duplicate'**
   String get actionDuplicate;
 
+  /// No description provided for @actionSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get actionSearch;
+
   /// No description provided for @labelNone.
   ///
   /// In en, this message translates to:
@@ -271,6 +283,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add expense'**
   String get tooltipAddExpense;
+
+  /// No description provided for @tooltipQuickAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick add'**
+  String get tooltipQuickAdd;
+
+  /// No description provided for @quickAddExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get quickAddExpense;
+
+  /// No description provided for @quickAddNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get quickAddNote;
+
+  /// No description provided for @quickAddBookmark.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookmark'**
+  String get quickAddBookmark;
+
+  /// No description provided for @tagsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get tagsLabel;
+
+  /// No description provided for @tagsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Separate tags with commas'**
+  String get tagsHint;
+
+  /// No description provided for @tagsAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All tags'**
+  String get tagsAll;
 
   /// No description provided for @shortcutNewExpense.
   ///
@@ -386,6 +440,54 @@ abstract class AppLocalizations {
   /// **'−{percent}% vs last month'**
   String dashboardDecreased(String percent);
 
+  /// No description provided for @dashboardRecentNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent notes'**
+  String get dashboardRecentNotes;
+
+  /// No description provided for @dashboardBookmarks.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookmarks'**
+  String get dashboardBookmarks;
+
+  /// No description provided for @dashboardNothingNotesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No notes yet'**
+  String get dashboardNothingNotesTitle;
+
+  /// No description provided for @dashboardNothingNotesMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture something and it will show up here.'**
+  String get dashboardNothingNotesMessage;
+
+  /// No description provided for @dashboardNothingBookmarksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No bookmarks yet'**
+  String get dashboardNothingBookmarksTitle;
+
+  /// No description provided for @dashboardNothingBookmarksMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Save links to find them here.'**
+  String get dashboardNothingBookmarksMessage;
+
+  /// No description provided for @dashboardAddNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Add note'**
+  String get dashboardAddNote;
+
+  /// No description provided for @dashboardAddBookmark.
+  ///
+  /// In en, this message translates to:
+  /// **'Add bookmark'**
+  String get dashboardAddBookmark;
+
   /// No description provided for @expensesTitle.
   ///
   /// In en, this message translates to:
@@ -469,6 +571,336 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Deleted {category} expense'**
   String expensesDeleted(String category);
+
+  /// No description provided for @notesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get notesTitle;
+
+  /// No description provided for @notesEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No notes yet'**
+  String get notesEmptyTitle;
+
+  /// No description provided for @notesEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture an idea, a list or a quote. It stays on this device.'**
+  String get notesEmptyMessage;
+
+  /// No description provided for @notesNoMatchesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches'**
+  String get notesNoMatchesTitle;
+
+  /// No description provided for @notesNoMatchesMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a different tag.'**
+  String get notesNoMatchesMessage;
+
+  /// No description provided for @notesNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New note'**
+  String get notesNewTitle;
+
+  /// No description provided for @notesEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit note'**
+  String get notesEditTitle;
+
+  /// No description provided for @notesNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Note not found.'**
+  String get notesNotFound;
+
+  /// No description provided for @notesLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load this note.'**
+  String get notesLoadError;
+
+  /// No description provided for @notesTitleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get notesTitleLabel;
+
+  /// No description provided for @notesBodyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Body'**
+  String get notesBodyLabel;
+
+  /// No description provided for @notesBodyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write in plain text or Markdown'**
+  String get notesBodyHint;
+
+  /// No description provided for @notesTitleError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a title.'**
+  String get notesTitleError;
+
+  /// No description provided for @notesSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the note. Please try again.'**
+  String get notesSaveError;
+
+  /// No description provided for @notesDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Note deleted'**
+  String get notesDeleted;
+
+  /// No description provided for @notesPinned.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned'**
+  String get notesPinned;
+
+  /// No description provided for @notesPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin note'**
+  String get notesPin;
+
+  /// No description provided for @notesUnpin.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpin note'**
+  String get notesUnpin;
+
+  /// No description provided for @notesArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive note'**
+  String get notesArchive;
+
+  /// No description provided for @notesUnarchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Unarchive note'**
+  String get notesUnarchive;
+
+  /// No description provided for @notesArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get notesArchived;
+
+  /// No description provided for @notesDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete note?'**
+  String get notesDeleteTitle;
+
+  /// No description provided for @notesDeleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{title}\"? This cannot be undone.'**
+  String notesDeleteMessage(String title);
+
+  /// No description provided for @notesExportMarkdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Export as Markdown'**
+  String get notesExportMarkdown;
+
+  /// No description provided for @notesExportAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Export all notes (ZIP)'**
+  String get notesExportAll;
+
+  /// No description provided for @notesExportError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not export the note.'**
+  String get notesExportError;
+
+  /// No description provided for @notesExportAllError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not export the notes.'**
+  String get notesExportAllError;
+
+  /// No description provided for @bookmarksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookmarks'**
+  String get bookmarksTitle;
+
+  /// No description provided for @bookmarksEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No bookmarks yet'**
+  String get bookmarksEmptyTitle;
+
+  /// No description provided for @bookmarksEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Save links you want to come back to.'**
+  String get bookmarksEmptyMessage;
+
+  /// No description provided for @bookmarksNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New bookmark'**
+  String get bookmarksNewTitle;
+
+  /// No description provided for @bookmarksEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit bookmark'**
+  String get bookmarksEditTitle;
+
+  /// No description provided for @bookmarksNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookmark not found.'**
+  String get bookmarksNotFound;
+
+  /// No description provided for @bookmarksLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load this bookmark.'**
+  String get bookmarksLoadError;
+
+  /// No description provided for @bookmarksUrlLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'URL'**
+  String get bookmarksUrlLabel;
+
+  /// No description provided for @bookmarksUrlError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid http or https link.'**
+  String get bookmarksUrlError;
+
+  /// No description provided for @bookmarksTitleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get bookmarksTitleLabel;
+
+  /// No description provided for @bookmarksTitleHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave it empty to use the domain'**
+  String get bookmarksTitleHelp;
+
+  /// No description provided for @bookmarksNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get bookmarksNoteLabel;
+
+  /// No description provided for @bookmarksSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the bookmark. Please try again.'**
+  String get bookmarksSaveError;
+
+  /// No description provided for @bookmarksDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookmark deleted'**
+  String get bookmarksDeleted;
+
+  /// No description provided for @bookmarksArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive bookmark'**
+  String get bookmarksArchive;
+
+  /// No description provided for @bookmarksUnarchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Unarchive bookmark'**
+  String get bookmarksUnarchive;
+
+  /// No description provided for @bookmarksArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get bookmarksArchived;
+
+  /// No description provided for @bookmarksDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete bookmark?'**
+  String get bookmarksDeleteTitle;
+
+  /// No description provided for @bookmarksDeleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{title}\"? This cannot be undone.'**
+  String bookmarksDeleteMessage(String title);
+
+  /// No description provided for @bookmarksOpenError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open this link.'**
+  String get bookmarksOpenError;
+
+  /// No description provided for @searchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get searchTitle;
+
+  /// No description provided for @searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search expenses, notes and bookmarks'**
+  String get searchHint;
+
+  /// No description provided for @searchEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Find expenses, notes and bookmarks on this device.'**
+  String get searchEmptyMessage;
+
+  /// No description provided for @searchNoResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No results'**
+  String get searchNoResultsTitle;
+
+  /// No description provided for @searchNoResultsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another word or check the spelling.'**
+  String get searchNoResultsMessage;
+
+  /// No description provided for @searchExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses'**
+  String get searchExpenses;
+
+  /// No description provided for @searchNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get searchNotes;
+
+  /// No description provided for @searchBookmarks.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookmarks'**
+  String get searchBookmarks;
 
   /// No description provided for @expenseNewTitle.
   ///
@@ -851,8 +1283,13 @@ abstract class AppLocalizations {
   /// No description provided for @settingsImportProcessed.
   ///
   /// In en, this message translates to:
-  /// **'Processed {total} records ({expenses} expenses).'**
-  String settingsImportProcessed(int total, int expenses);
+  /// **'Processed {total} records ({expenses} expenses, {notes} notes, {bookmarks} bookmarks).'**
+  String settingsImportProcessed(
+    int total,
+    int expenses,
+    int notes,
+    int bookmarks,
+  );
 
   /// No description provided for @settingsImportError.
   ///

@@ -47,6 +47,47 @@ final allTemplatesProvider = StreamProvider<List<Template>>((ref) {
   return ref.watch(databaseProvider).watchTemplates(includeArchived: true);
 });
 
+final notesProvider = StreamProvider<List<Note>>((ref) {
+  return ref.watch(databaseProvider).watchNotes();
+});
+
+final allNotesProvider = StreamProvider<List<Note>>((ref) {
+  return ref.watch(databaseProvider).watchNotes(includeArchived: true);
+});
+
+final recentNotesProvider = StreamProvider.family<List<Note>, int>((
+  ref,
+  limit,
+) {
+  return ref.watch(databaseProvider).watchRecentNotes(limit: limit);
+});
+
+final noteByIdProvider = FutureProvider.family<Note?, String>((ref, id) {
+  return ref.watch(databaseProvider).getNote(id);
+});
+
+final bookmarksProvider = StreamProvider<List<Bookmark>>((ref) {
+  return ref.watch(databaseProvider).watchBookmarks();
+});
+
+final allBookmarksProvider = StreamProvider<List<Bookmark>>((ref) {
+  return ref.watch(databaseProvider).watchBookmarks(includeArchived: true);
+});
+
+final recentBookmarksProvider = StreamProvider.family<List<Bookmark>, int>((
+  ref,
+  limit,
+) {
+  return ref.watch(databaseProvider).watchRecentBookmarks(limit: limit);
+});
+
+final bookmarkByIdProvider = FutureProvider.family<Bookmark?, String>((
+  ref,
+  id,
+) {
+  return ref.watch(databaseProvider).getBookmark(id);
+});
+
 final monthExpensesProvider =
     StreamProvider.family<List<ExpenseView>, ExpenseQuery>((ref, query) {
       return ref

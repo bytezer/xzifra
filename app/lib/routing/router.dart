@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/l10n.dart';
+import '../features/bookmarks/bookmark_editor_page.dart';
 import '../features/dashboard/dashboard_page.dart';
 import '../features/expenses/expense_form_page.dart';
-import '../features/expenses/expenses_page.dart';
+import '../features/notes/note_editor_page.dart';
+import '../features/records/quick_capture.dart';
+import '../features/records/records_page.dart';
 import '../features/reports/reports_page.dart';
+import '../features/search/search_page.dart';
 import '../features/settings/about_page.dart';
 import '../features/settings/categories_page.dart';
 import '../features/settings/payment_methods_page.dart';
@@ -33,8 +37,14 @@ final GoRouter appRouter = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
+              path: '/records',
+              builder: (context, state) => RecordsPage(
+                initialTab: _recordsTab(state.uri.queryParameters['tab']),
+              ),
+            ),
+            GoRoute(
               path: '/expenses',
-              builder: (context, state) => const ExpensesPage(),
+              redirect: (context, state) => '/records',
             ),
           ],
         ),
@@ -80,6 +90,33 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const ExpenseFormPage(),
     ),
     GoRoute(
+      path: '/search',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const SearchPage(),
+    ),
+    GoRoute(
+      path: '/notes/new',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const NoteEditorPage(),
+    ),
+    GoRoute(
+      path: '/notes/:id/edit',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) =>
+          NoteEditorPage(noteId: state.pathParameters['id']),
+    ),
+    GoRoute(
+      path: '/bookmarks/new',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const BookmarkEditorPage(),
+    ),
+    GoRoute(
+      path: '/bookmarks/:id/edit',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) =>
+          BookmarkEditorPage(bookmarkId: state.pathParameters['id']),
+    ),
+    GoRoute(
       path: '/expenses/:id/edit',
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) =>
@@ -96,6 +133,14 @@ final GoRouter appRouter = GoRouter(
   ],
 );
 
+int _recordsTab(String? tab) {
+  return switch (tab) {
+    'notes' => 1,
+    'bookmarks' => 2,
+    _ => 0,
+  };
+}
+
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.navigationShell});
 
@@ -110,8 +155,8 @@ class AppShell extends StatelessWidget {
       floatingActionButton: isSettings
           ? null
           : FloatingActionButton(
-              onPressed: () => context.push('/add'),
-              tooltip: l10n.tooltipAddExpense,
+              onPressed: () => showQuickCapture(context),
+              tooltip: l10n.tooltipQuickAdd,
               child: const Icon(Icons.add),
             ),
       bottomNavigationBar: NavigationBar(
@@ -127,9 +172,9 @@ class AppShell extends StatelessWidget {
             label: l10n.navHome,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.receipt_long_outlined),
-            selectedIcon: const Icon(Icons.receipt_long),
-            label: l10n.navExpenses,
+            icon: const Icon(Icons.library_books_outlined),
+            selectedIcon: const Icon(Icons.library_books),
+            label: l10n.navRecords,
           ),
           NavigationDestination(
             icon: const Icon(Icons.bar_chart_outlined),

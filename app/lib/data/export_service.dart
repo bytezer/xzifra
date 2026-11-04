@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../core/tags.dart';
 import '../domain/money.dart';
 import 'database.dart';
 
@@ -49,6 +51,34 @@ class ExportService {
     );
   }
 
+  /// Exports a single note as an Obsidian-compatible Markdown document.
+  Future<File> createNoteMarkdown(Note note) async {
+    final file = await _tempFile('xzifra-note-${_slug(note.title)}', 'md');
+    await file.writeAsString(noteMarkdown(note));
+    return file;
+  }
+
+  /// Exports every note as Markdown files inside a ZIP for Obsidian.
+  Future<File> createNotesZip(List<Note> notes) async {
+    final archive = Archive();
+    final names = <String>{};
+    for (final note in notes) {
+      var name = _slug(note.title);
+      if (name.isEmpty) name = 'note';
+      var fileName = '$name.md';
+      var suffix = 2;
+      while (!names.add(fileName)) {
+        fileName = '$name-${suffix++}.md';
+      }
+      archive.addFile(
+        ArchiveFile.string('Xzifra Notes/$fileName', noteMarkdown(note)),
+      );
+    }
+    final file = await _tempFile('xzifra-notes', 'zip');
+    await file.writeAsBytes(ZipEncoder().encode(archive));
+    return file;
+  }
+
   /// Returns `null` when the user cancels the file picker.
   Future<ImportSummary?> importJsonBackup() async {
     final files = await FilePicker.pickFiles(
@@ -81,5 +111,65 @@ class ExportService {
       return '"${value.replaceAll('"', '""')}"';
     }
     return value;
+  }
+
+  String noteMarkdown(Note note) {
+    final buffer = StringBuffer('---\n');
+    buffer.writeln('title: ${jsonEncode(note.title)}');
+    final tags = parseTags(note.tags);
+    buffer.writeln('tags: [${tags.map(jsonEncode).join(', ')}]');
+    buffer.writeln('pinned: ${note.pinned}');
+    if (note.archivedAt != null) {
+      buffer.writeln('archived: true');
+    }
+    buffer.writeln('created: ${note.createdAt.toUtc().toIso8601String()}');
+    buffer.writeln('updated: ${note.updatedAt.toUtc().toIso8601String()}');
+    buffer.writeln('---');
+    buffer.writeln();
+    buffer.writeln('# ${note.title}');
+    final body = note.body.trimRight();
+    if (body.isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln(body);
+    }
+    return buffer.toString();
+  }
+
+  String _slug(String value) {
+    const accents = {
+      'á': 'a',
+      'à': 'a',
+      'ä': 'a',
+      'â': 'a',
+      'é': 'e',
+      'è': 'e',
+      'ë': 'e',
+      'ê': 'e',
+      'í': 'i',
+      'ì': 'i',
+      'ï': 'i',
+      'î': 'i',
+      'ó': 'o',
+      'ò': 'o',
+      'ö': 'o',
+      'ô': 'o',
+      'ú': 'u',
+      'ù': 'u',
+      'ü': 'u',
+      'û': 'u',
+      'ñ': 'n',
+      'ç': 'c',
+    };
+    var text = value.toLowerCase();
+    for (final entry in accents.entries) {
+      text = text.replaceAll(entry.key, entry.value);
+    }
+    final slug = text
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+        .replaceAll(RegExp(r'^-+|-+$'), '')
+        .split('-')
+        .take(8)
+        .join('-');
+    return slug.length > 60 ? slug.substring(0, 60) : slug;
   }
 }

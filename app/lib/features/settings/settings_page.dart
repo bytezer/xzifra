@@ -379,7 +379,12 @@ class SettingsPage extends ConsumerWidget {
       messenger.showSnackBar(
         SnackBar(
           content: Text(
-            l10n.settingsImportProcessed(summary.total, summary.expenses),
+            l10n.settingsImportProcessed(
+              summary.total,
+              summary.expenses,
+              summary.notes,
+              summary.bookmarks,
+            ),
           ),
         ),
       );

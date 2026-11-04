@@ -5,6 +5,7 @@
 
   "navHome": "Home",
   "navExpenses": "Expenses",
+  "navRecords": "Records",
   "navReports": "Reports",
   "navSettings": "Settings",
 
@@ -20,6 +21,7 @@
   "actionMoveDown": "Move down",
   "actionArchive": "Archive",
   "actionDuplicate": "Duplicate",
+  "actionSearch": "Search",
 
   "labelNone": "None",
   "labelOptional": "Optional",
@@ -35,6 +37,15 @@
   "tooltipPreviousMonth": "Previous month",
   "tooltipNextMonth": "Next month",
   "tooltipAddExpense": "Add expense",
+  "tooltipQuickAdd": "Quick add",
+
+  "quickAddExpense": "Expense",
+  "quickAddNote": "Note",
+  "quickAddBookmark": "Bookmark",
+
+  "tagsLabel": "Tags",
+  "tagsHint": "Separate tags with commas",
+  "tagsAll": "All tags",
 
   "shortcutNewExpense": "New expense",
   "shortcutReports": "Reports",
@@ -71,6 +82,14 @@
       }
     }
   },
+  "dashboardRecentNotes": "Recent notes",
+  "dashboardBookmarks": "Bookmarks",
+  "dashboardNothingNotesTitle": "No notes yet",
+  "dashboardNothingNotesMessage": "Capture something and it will show up here.",
+  "dashboardNothingBookmarksTitle": "No bookmarks yet",
+  "dashboardNothingBookmarksMessage": "Save links to find them here.",
+  "dashboardAddNote": "Add note",
+  "dashboardAddBookmark": "Add bookmark",
 
   "expensesTitle": "Expenses",
   "expensesFilterCategory": "Category",
@@ -93,6 +112,78 @@
       }
     }
   },
+
+  "notesTitle": "Notes",
+  "notesEmptyTitle": "No notes yet",
+  "notesEmptyMessage": "Capture an idea, a list or a quote. It stays on this device.",
+  "notesNoMatchesTitle": "No matches",
+  "notesNoMatchesMessage": "Try a different tag.",
+  "notesNewTitle": "New note",
+  "notesEditTitle": "Edit note",
+  "notesNotFound": "Note not found.",
+  "notesLoadError": "Could not load this note.",
+  "notesTitleLabel": "Title",
+  "notesBodyLabel": "Body",
+  "notesBodyHint": "Write in plain text or Markdown",
+  "notesTitleError": "Enter a title.",
+  "notesSaveError": "Could not save the note. Please try again.",
+  "notesDeleted": "Note deleted",
+  "notesPinned": "Pinned",
+  "notesPin": "Pin note",
+  "notesUnpin": "Unpin note",
+  "notesArchive": "Archive note",
+  "notesUnarchive": "Unarchive note",
+  "notesArchived": "Archived",
+  "notesDeleteTitle": "Delete note?",
+  "notesDeleteMessage": "Delete \"{title}\"? This cannot be undone.",
+  "@notesDeleteMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "notesExportMarkdown": "Export as Markdown",
+  "notesExportAll": "Export all notes (ZIP)",
+  "notesExportError": "Could not export the note.",
+  "notesExportAllError": "Could not export the notes.",
+
+  "bookmarksTitle": "Bookmarks",
+  "bookmarksEmptyTitle": "No bookmarks yet",
+  "bookmarksEmptyMessage": "Save links you want to come back to.",
+  "bookmarksNewTitle": "New bookmark",
+  "bookmarksEditTitle": "Edit bookmark",
+  "bookmarksNotFound": "Bookmark not found.",
+  "bookmarksLoadError": "Could not load this bookmark.",
+  "bookmarksUrlLabel": "URL",
+  "bookmarksUrlError": "Enter a valid http or https link.",
+  "bookmarksTitleLabel": "Title",
+  "bookmarksTitleHelp": "Leave it empty to use the domain",
+  "bookmarksNoteLabel": "Note",
+  "bookmarksSaveError": "Could not save the bookmark. Please try again.",
+  "bookmarksDeleted": "Bookmark deleted",
+  "bookmarksArchive": "Archive bookmark",
+  "bookmarksUnarchive": "Unarchive bookmark",
+  "bookmarksArchived": "Archived",
+  "bookmarksDeleteTitle": "Delete bookmark?",
+  "bookmarksDeleteMessage": "Delete \"{title}\"? This cannot be undone.",
+  "@bookmarksDeleteMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "bookmarksOpenError": "Could not open this link.",
+
+  "searchTitle": "Search",
+  "searchHint": "Search expenses, notes and bookmarks",
+  "searchEmptyMessage": "Find expenses, notes and bookmarks on this device.",
+  "searchNoResultsTitle": "No results",
+  "searchNoResultsMessage": "Try another word or check the spelling.",
+  "searchExpenses": "Expenses",
+  "searchNotes": "Notes",
+  "searchBookmarks": "Bookmarks",
 
   "expenseNewTitle": "New expense",
   "expenseEditTitle": "Edit expense",
@@ -159,13 +250,19 @@
   "settingsAboutSubtitle": "Version, source code and licenses",
   "settingsExportError": "Could not export the backup.",
   "settingsCsvError": "Could not export the CSV.",
-  "settingsImportProcessed": "Processed {total} records ({expenses} expenses).",
+  "settingsImportProcessed": "Processed {total} records ({expenses} expenses, {notes} notes, {bookmarks} bookmarks).",
   "@settingsImportProcessed": {
     "placeholders": {
       "total": {
         "type": "int"
       },
       "expenses": {
+        "type": "int"
+      },
+      "notes": {
+        "type": "int"
+      },
+      "bookmarks": {
         "type": "int"
       }
     }

@@ -19,6 +19,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get navExpenses => 'Gastos';
 
   @override
+  String get navRecords => 'Registros';
+
+  @override
   String get navReports => 'Reportes';
 
   @override
@@ -61,6 +64,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get actionDuplicate => 'Duplicar';
 
   @override
+  String get actionSearch => 'Buscar';
+
+  @override
   String get labelNone => 'Ninguno';
 
   @override
@@ -95,6 +101,27 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get tooltipAddExpense => 'Agregar gasto';
+
+  @override
+  String get tooltipQuickAdd => 'Agregar rápido';
+
+  @override
+  String get quickAddExpense => 'Gasto';
+
+  @override
+  String get quickAddNote => 'Nota';
+
+  @override
+  String get quickAddBookmark => 'Marcador';
+
+  @override
+  String get tagsLabel => 'Etiquetas';
+
+  @override
+  String get tagsHint => 'Separa las etiquetas con comas';
+
+  @override
+  String get tagsAll => 'Todas';
 
   @override
   String get shortcutNewExpense => 'Nuevo gasto';
@@ -161,6 +188,31 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get dashboardRecentNotes => 'Notas recientes';
+
+  @override
+  String get dashboardBookmarks => 'Marcadores';
+
+  @override
+  String get dashboardNothingNotesTitle => 'Aún no hay notas';
+
+  @override
+  String get dashboardNothingNotesMessage => 'Captura algo y aparecerá aquí.';
+
+  @override
+  String get dashboardNothingBookmarksTitle => 'Aún no hay marcadores';
+
+  @override
+  String get dashboardNothingBookmarksMessage =>
+      'Guarda enlaces para encontrarlos aquí.';
+
+  @override
+  String get dashboardAddNote => 'Agregar nota';
+
+  @override
+  String get dashboardAddBookmark => 'Agregar marcador';
+
+  @override
   String get expensesTitle => 'Gastos';
 
   @override
@@ -204,6 +256,181 @@ class AppLocalizationsEs extends AppLocalizations {
   String expensesDeleted(String category) {
     return 'Gasto de $category eliminado';
   }
+
+  @override
+  String get notesTitle => 'Notas';
+
+  @override
+  String get notesEmptyTitle => 'Aún no hay notas';
+
+  @override
+  String get notesEmptyMessage =>
+      'Captura una idea, una lista o una cita. Se queda en este dispositivo.';
+
+  @override
+  String get notesNoMatchesTitle => 'Sin resultados';
+
+  @override
+  String get notesNoMatchesMessage => 'Prueba con otra etiqueta.';
+
+  @override
+  String get notesNewTitle => 'Nueva nota';
+
+  @override
+  String get notesEditTitle => 'Editar nota';
+
+  @override
+  String get notesNotFound => 'No se encontró la nota.';
+
+  @override
+  String get notesLoadError => 'No se pudo cargar la nota.';
+
+  @override
+  String get notesTitleLabel => 'Título';
+
+  @override
+  String get notesBodyLabel => 'Contenido';
+
+  @override
+  String get notesBodyHint => 'Escribe en texto plano o Markdown';
+
+  @override
+  String get notesTitleError => 'Escribe un título.';
+
+  @override
+  String get notesSaveError =>
+      'No se pudo guardar la nota. Inténtalo de nuevo.';
+
+  @override
+  String get notesDeleted => 'Nota eliminada';
+
+  @override
+  String get notesPinned => 'Fijada';
+
+  @override
+  String get notesPin => 'Fijar nota';
+
+  @override
+  String get notesUnpin => 'Quitar fijación';
+
+  @override
+  String get notesArchive => 'Archivar nota';
+
+  @override
+  String get notesUnarchive => 'Desarchivar nota';
+
+  @override
+  String get notesArchived => 'Archivadas';
+
+  @override
+  String get notesDeleteTitle => '¿Eliminar nota?';
+
+  @override
+  String notesDeleteMessage(String title) {
+    return '¿Eliminar \"$title\"? Esto no se puede deshacer.';
+  }
+
+  @override
+  String get notesExportMarkdown => 'Exportar como Markdown';
+
+  @override
+  String get notesExportAll => 'Exportar todas las notas (ZIP)';
+
+  @override
+  String get notesExportError => 'No se pudo exportar la nota.';
+
+  @override
+  String get notesExportAllError => 'No se pudieron exportar las notas.';
+
+  @override
+  String get bookmarksTitle => 'Marcadores';
+
+  @override
+  String get bookmarksEmptyTitle => 'Aún no hay marcadores';
+
+  @override
+  String get bookmarksEmptyMessage =>
+      'Guarda enlaces a los que quieras volver.';
+
+  @override
+  String get bookmarksNewTitle => 'Nuevo marcador';
+
+  @override
+  String get bookmarksEditTitle => 'Editar marcador';
+
+  @override
+  String get bookmarksNotFound => 'No se encontró el marcador.';
+
+  @override
+  String get bookmarksLoadError => 'No se pudo cargar el marcador.';
+
+  @override
+  String get bookmarksUrlLabel => 'URL';
+
+  @override
+  String get bookmarksUrlError => 'Ingresa un enlace http o https válido.';
+
+  @override
+  String get bookmarksTitleLabel => 'Título';
+
+  @override
+  String get bookmarksTitleHelp => 'Si lo dejas vacío, usaremos el dominio';
+
+  @override
+  String get bookmarksNoteLabel => 'Nota';
+
+  @override
+  String get bookmarksSaveError =>
+      'No se pudo guardar el marcador. Inténtalo de nuevo.';
+
+  @override
+  String get bookmarksDeleted => 'Marcador eliminado';
+
+  @override
+  String get bookmarksArchive => 'Archivar marcador';
+
+  @override
+  String get bookmarksUnarchive => 'Desarchivar marcador';
+
+  @override
+  String get bookmarksArchived => 'Archivados';
+
+  @override
+  String get bookmarksDeleteTitle => '¿Eliminar marcador?';
+
+  @override
+  String bookmarksDeleteMessage(String title) {
+    return '¿Eliminar \"$title\"? Esto no se puede deshacer.';
+  }
+
+  @override
+  String get bookmarksOpenError => 'No se pudo abrir este enlace.';
+
+  @override
+  String get searchTitle => 'Buscar';
+
+  @override
+  String get searchHint => 'Busca gastos, notas y marcadores';
+
+  @override
+  String get searchEmptyMessage =>
+      'Encuentra gastos, notas y marcadores en este dispositivo.';
+
+  @override
+  String get searchNoResultsTitle => 'Sin resultados';
+
+  @override
+  String get searchNoResultsMessage =>
+      'Prueba con otra palabra o revisa la ortografía.';
+
+  @override
+  String get searchExpenses => 'Gastos';
+
+  @override
+  String get searchNotes => 'Notas';
+
+  @override
+  String get searchBookmarks => 'Marcadores';
 
   @override
   String get expenseNewTitle => 'Nuevo gasto';
@@ -404,8 +631,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsCsvError => 'No se pudo exportar el CSV.';
 
   @override
-  String settingsImportProcessed(int total, int expenses) {
-    return 'Se procesaron $total registros ($expenses gastos).';
+  String settingsImportProcessed(
+    int total,
+    int expenses,
+    int notes,
+    int bookmarks,
+  ) {
+    return 'Se procesaron $total registros ($expenses gastos, $notes notas, $bookmarks marcadores).';
   }
 
   @override

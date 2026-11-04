@@ -13,14 +13,14 @@ import '../../domain/reports.dart';
 import '../../providers.dart';
 import '../templates/expense_template_action.dart';
 
-class ExpensesPage extends ConsumerStatefulWidget {
-  const ExpensesPage({super.key});
+class ExpensesTab extends ConsumerStatefulWidget {
+  const ExpensesTab({super.key});
 
   @override
-  ConsumerState<ExpensesPage> createState() => _ExpensesPageState();
+  ConsumerState<ExpensesTab> createState() => _ExpensesTabState();
 }
 
-class _ExpensesPageState extends ConsumerState<ExpensesPage> {
+class _ExpensesTabState extends ConsumerState<ExpensesTab> {
   String? _categoryId;
   String? _paymentMethodId;
 
@@ -59,125 +59,116 @@ class _ExpensesPageState extends ConsumerState<ExpensesPage> {
     }
     final dates = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.expensesTitle),
-        actions: [
-          if (hasFilters)
-            TextButton(
-              onPressed: () => setState(() {
-                _categoryId = null;
-                _paymentMethodId = null;
-              }),
-              child: Text(context.l10n.actionClear),
-            ),
-        ],
-      ),
-      body: SafeArea(
-        top: false,
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: Column(
-                children: [
-                  const MonthSelector(alignStart: true),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const CurrencySelector(),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          reverse: true,
-                          child: Row(
-                            children: [
-                              FilterChip(
-                                label: Text(
-                                  _categoryId == null
-                                      ? context.l10n.expensesFilterCategory
-                                      : categoriesById[_categoryId]?.name ??
-                                            context.l10n.expensesFilterCategory,
-                                ),
-                                selected: _categoryId != null,
-                                onSelected: (_) => _pickCategory(categories),
+    return SafeArea(
+      top: false,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Column(
+              children: [
+                const MonthSelector(alignStart: true),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const CurrencySelector(),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        reverse: true,
+                        child: Row(
+                          children: [
+                            if (hasFilters)
+                              TextButton(
+                                onPressed: () => setState(() {
+                                  _categoryId = null;
+                                  _paymentMethodId = null;
+                                }),
+                                child: Text(context.l10n.actionClear),
                               ),
-                              const SizedBox(width: 8),
-                              FilterChip(
-                                label: Text(
-                                  _paymentMethodId == null
-                                      ? context.l10n.expensesFilterPayment
-                                      : methodsById[_paymentMethodId]?.name ??
-                                            context.l10n.expensesFilterPayment,
-                                ),
-                                selected: _paymentMethodId != null,
-                                onSelected: (_) =>
-                                    _pickPaymentMethod(paymentMethods),
+                            FilterChip(
+                              label: Text(
+                                _categoryId == null
+                                    ? context.l10n.expensesFilterCategory
+                                    : categoriesById[_categoryId]?.name ??
+                                          context.l10n.expensesFilterCategory,
                               ),
-                            ],
-                          ),
+                              selected: _categoryId != null,
+                              onSelected: (_) => _pickCategory(categories),
+                            ),
+                            const SizedBox(width: 8),
+                            FilterChip(
+                              label: Text(
+                                _paymentMethodId == null
+                                    ? context.l10n.expensesFilterPayment
+                                    : methodsById[_paymentMethodId]?.name ??
+                                          context.l10n.expensesFilterPayment,
+                              ),
+                              selected: _paymentMethodId != null,
+                              onSelected: (_) =>
+                                  _pickPaymentMethod(paymentMethods),
+                            ),
+                          ],
                         ),
                       ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: items.isEmpty
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: EmptyState(
+                        icon: Icons.receipt_long_outlined,
+                        title: hasFilters
+                            ? context.l10n.expensesNoMatchesTitle
+                            : context.l10n.expensesEmptyTitle,
+                        message: hasFilters
+                            ? context.l10n.expensesNoMatchesMessage
+                            : context.l10n.expensesEmptyMessage,
+                        action: hasFilters
+                            ? OutlinedButton(
+                                onPressed: () => setState(() {
+                                  _categoryId = null;
+                                  _paymentMethodId = null;
+                                }),
+                                child: Text(context.l10n.expensesClearFilters),
+                              )
+                            : null,
+                      ),
+                    ),
+                  )
+                : ListView(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
+                    children: [
+                      for (final date in dates) ...[
+                        _DayHeader(
+                          date: date,
+                          total: TotalsMath.sum(
+                            grouped[date]!.map(
+                              (item) => item.expense.amountCents,
+                            ),
+                          ),
+                          currency: currency,
+                        ),
+                        for (final item in grouped[date]!)
+                          _ExpenseTile(
+                            item: item,
+                            currency: currency,
+                            onDelete: () => _delete(item),
+                            onLongPress: () => _showActions(item),
+                          ),
+                        const SizedBox(height: 12),
+                      ],
                     ],
                   ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: items.isEmpty
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: EmptyState(
-                          icon: Icons.receipt_long_outlined,
-                          title: hasFilters
-                              ? context.l10n.expensesNoMatchesTitle
-                              : context.l10n.expensesEmptyTitle,
-                          message: hasFilters
-                              ? context.l10n.expensesNoMatchesMessage
-                              : context.l10n.expensesEmptyMessage,
-                          action: hasFilters
-                              ? OutlinedButton(
-                                  onPressed: () => setState(() {
-                                    _categoryId = null;
-                                    _paymentMethodId = null;
-                                  }),
-                                  child: Text(
-                                    context.l10n.expensesClearFilters,
-                                  ),
-                                )
-                              : null,
-                        ),
-                      ),
-                    )
-                  : ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
-                      children: [
-                        for (final date in dates) ...[
-                          _DayHeader(
-                            date: date,
-                            total: TotalsMath.sum(
-                              grouped[date]!.map(
-                                (item) => item.expense.amountCents,
-                              ),
-                            ),
-                            currency: currency,
-                          ),
-                          for (final item in grouped[date]!)
-                            _ExpenseTile(
-                              item: item,
-                              currency: currency,
-                              onDelete: () => _delete(item),
-                              onLongPress: () => _showActions(item),
-                            ),
-                          const SizedBox(height: 12),
-                        ],
-                      ],
-                    ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

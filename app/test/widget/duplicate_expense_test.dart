@@ -60,6 +60,8 @@ void main() {
     );
     await _settle(tester);
 
+    await tester.tap(find.text('Records'));
+    await _settle(tester);
     await tester.tap(find.text('Expenses'));
     await _settle(tester);
 

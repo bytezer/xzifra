@@ -79,6 +79,38 @@ class Templates extends Table {
   List<String> get customConstraints => const ['CHECK (amount_cents > 0)'];
 }
 
+class Notes extends Table {
+  TextColumn get id => text()();
+  TextColumn get title => text().withLength(min: 1, max: 200)();
+  TextColumn get body => text().withDefault(const Constant(''))();
+
+  /// Comma-separated tag list.
+  TextColumn get tags => text().withDefault(const Constant(''))();
+  BoolColumn get pinned => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get archivedAt => dateTime().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class Bookmarks extends Table {
+  TextColumn get id => text()();
+  TextColumn get url => text()();
+  TextColumn get title => text()();
+  TextColumn get note => text().nullable()();
+
+  /// Comma-separated tag list.
+  TextColumn get tags => text().withDefault(const Constant(''))();
+  DateTimeColumn get archivedAt => dateTime().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 class SettingsEntries extends Table {
   TextColumn get key => text()();
   TextColumn get value => text()();
@@ -105,18 +137,31 @@ class ImportSummary {
     required this.paymentMethods,
     required this.expenses,
     required this.templates,
+    required this.notes,
+    required this.bookmarks,
   });
 
   final int categories;
   final int paymentMethods;
   final int expenses;
   final int templates;
+  final int notes;
+  final int bookmarks;
 
-  int get total => categories + paymentMethods + expenses + templates;
+  int get total =>
+      categories + paymentMethods + expenses + templates + notes + bookmarks;
 }
 
 @DriftDatabase(
-  tables: [Categories, PaymentMethods, Expenses, Templates, SettingsEntries],
+  tables: [
+    Categories,
+    PaymentMethods,
+    Expenses,
+    Templates,
+    Notes,
+    Bookmarks,
+    SettingsEntries,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
@@ -124,7 +169,7 @@ class AppDatabase extends _$AppDatabase {
   static const _uuid = Uuid();
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -139,6 +184,10 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 3) {
         await m.createTable(templates);
+      }
+      if (from < 4) {
+        await m.createTable(notes);
+        await m.createTable(bookmarks);
       }
     },
     beforeOpen: (details) async {
@@ -391,6 +440,115 @@ class AppDatabase extends _$AppDatabase {
       query.where((t) => t.archivedAt.isNull());
     }
     return query.watch();
+  }
+
+  Stream<List<Note>> watchNotes({bool includeArchived = false}) {
+    final query = select(notes)
+      ..orderBy([
+        (t) => OrderingTerm.desc(t.pinned),
+        (t) => OrderingTerm.desc(t.updatedAt),
+      ]);
+    if (!includeArchived) {
+      query.where((t) => t.archivedAt.isNull());
+    }
+    return query.watch();
+  }
+
+  Stream<List<Note>> watchRecentNotes({int limit = 3}) {
+    final query = (select(notes)..where((t) => t.archivedAt.isNull()))
+      ..orderBy([
+        (t) => OrderingTerm.desc(t.pinned),
+        (t) => OrderingTerm.desc(t.updatedAt),
+      ])
+      ..limit(limit);
+    return query.watch();
+  }
+
+  Future<Note?> getNote(String id) {
+    return (select(notes)..where((t) => t.id.equals(id))).getSingleOrNull();
+  }
+
+  Stream<List<Bookmark>> watchBookmarks({bool includeArchived = false}) {
+    final query = select(bookmarks)
+      ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)]);
+    if (!includeArchived) {
+      query.where((t) => t.archivedAt.isNull());
+    }
+    return query.watch();
+  }
+
+  Stream<List<Bookmark>> watchRecentBookmarks({int limit = 3}) {
+    final query = (select(bookmarks)..where((t) => t.archivedAt.isNull()))
+      ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])
+      ..limit(limit);
+    return query.watch();
+  }
+
+  Future<Bookmark?> getBookmark(String id) {
+    return (select(bookmarks)..where((t) => t.id.equals(id))).getSingleOrNull();
+  }
+
+  /// Case-insensitive [LIKE] search across notes, bookmarks and expenses.
+  ///
+  /// Archived records are intentionally excluded from global search.
+  Future<List<ExpenseView>> searchExpenses(String query, {int limit = 50}) {
+    final pattern = _likePattern(query);
+    final statement = select(expenses).join([
+      innerJoin(categories, categories.id.equalsExp(expenses.categoryId)),
+      leftOuterJoin(
+        paymentMethods,
+        paymentMethods.id.equalsExp(expenses.paymentMethodId),
+      ),
+    ]);
+
+    statement
+      ..where(
+        expenses.note.like(pattern, escapeChar: r'\') |
+            categories.name.like(pattern, escapeChar: r'\') |
+            paymentMethods.name.like(pattern, escapeChar: r'\') |
+            expenses.date.like(pattern, escapeChar: r'\'),
+      )
+      ..orderBy([
+        OrderingTerm.desc(expenses.date),
+        OrderingTerm.desc(expenses.createdAt),
+      ])
+      ..limit(limit);
+
+    return statement.get().then(_mapRows);
+  }
+
+  Future<List<Note>> searchNotes(String query, {int limit = 50}) {
+    final pattern = _likePattern(query);
+    return (select(notes)
+          ..where(
+            (t) =>
+                t.archivedAt.isNull() &
+                (t.title.like(pattern, escapeChar: r'\') |
+                    t.body.like(pattern, escapeChar: r'\') |
+                    t.tags.like(pattern, escapeChar: r'\')),
+          )
+          ..orderBy([
+            (t) => OrderingTerm.desc(t.pinned),
+            (t) => OrderingTerm.desc(t.updatedAt),
+          ])
+          ..limit(limit))
+        .get();
+  }
+
+  Future<List<Bookmark>> searchBookmarks(String query, {int limit = 50}) {
+    final pattern = _likePattern(query);
+    return (select(bookmarks)
+          ..where(
+            (t) =>
+                t.archivedAt.isNull() &
+                (t.title.like(pattern, escapeChar: r'\') |
+                    t.url.like(pattern, escapeChar: r'\') |
+                    t.note.like(pattern, escapeChar: r'\') |
+                    t.tags.like(pattern, escapeChar: r'\')),
+          )
+          ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])
+          ..limit(limit))
+        .get();
   }
 
   Stream<String?> watchSetting(String key) {
@@ -760,6 +918,116 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // ---------------------------------------------------------------------------
+  // Note mutations
+  // ---------------------------------------------------------------------------
+
+  Future<void> addNote({
+    required String title,
+    required String body,
+    required String tags,
+    bool pinned = false,
+  }) async {
+    final now = DateTime.now();
+    await into(notes).insert(
+      NotesCompanion.insert(
+        id: _uuid.v4(),
+        title: title,
+        body: Value(body),
+        tags: Value(tags),
+        pinned: Value(pinned),
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+  }
+
+  Future<void> updateNote(
+    String id, {
+    required String title,
+    required String body,
+    required String tags,
+    required bool pinned,
+  }) async {
+    await (update(notes)..where((t) => t.id.equals(id))).write(
+      NotesCompanion(
+        title: Value(title),
+        body: Value(body),
+        tags: Value(tags),
+        pinned: Value(pinned),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  Future<void> setNotePinned(String id, {required bool pinned}) {
+    return (update(notes)..where((t) => t.id.equals(id))).write(
+      NotesCompanion(pinned: Value(pinned), updatedAt: Value(DateTime.now())),
+    );
+  }
+
+  Future<void> setNoteArchived(String id, {required bool archived}) {
+    return (update(notes)..where((t) => t.id.equals(id))).write(
+      NotesCompanion(archivedAt: Value(archived ? DateTime.now() : null)),
+    );
+  }
+
+  Future<void> deleteNote(String id) async {
+    await (delete(notes)..where((t) => t.id.equals(id))).go();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Bookmark mutations
+  // ---------------------------------------------------------------------------
+
+  Future<void> addBookmark({
+    required String url,
+    required String title,
+    String? note,
+    required String tags,
+  }) async {
+    final now = DateTime.now();
+    await into(bookmarks).insert(
+      BookmarksCompanion.insert(
+        id: _uuid.v4(),
+        url: url,
+        title: title,
+        note: Value(note),
+        tags: Value(tags),
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+  }
+
+  Future<void> updateBookmark(
+    String id, {
+    required String url,
+    required String title,
+    String? note,
+    required String tags,
+  }) async {
+    await (update(bookmarks)..where((t) => t.id.equals(id))).write(
+      BookmarksCompanion(
+        url: Value(url),
+        title: Value(title),
+        note: Value(note),
+        tags: Value(tags),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  Future<void> setBookmarkArchived(String id, {required bool archived}) {
+    return (update(bookmarks)..where((t) => t.id.equals(id))).write(
+      BookmarksCompanion(archivedAt: Value(archived ? DateTime.now() : null)),
+    );
+  }
+
+  Future<void> deleteBookmark(String id) async {
+    await (delete(bookmarks)..where((t) => t.id.equals(id))).go();
+  }
+
+  // ---------------------------------------------------------------------------
   // Settings
   // ---------------------------------------------------------------------------
 
@@ -778,6 +1046,8 @@ class AppDatabase extends _$AppDatabase {
     final methodRows = await select(paymentMethods).get();
     final expenseRows = await select(expenses).get();
     final templateRows = await select(templates).get();
+    final noteRows = await select(notes).get();
+    final bookmarkRows = await select(bookmarks).get();
     final settingRows = await select(settingsEntries).get();
 
     return {
@@ -838,6 +1108,32 @@ class AppDatabase extends _$AppDatabase {
             'createdAt': row.createdAt.toUtc().toIso8601String(),
           },
       ],
+      'notes': [
+        for (final row in noteRows)
+          {
+            'id': row.id,
+            'title': row.title,
+            'body': row.body,
+            'tags': row.tags,
+            'pinned': row.pinned,
+            'archivedAt': row.archivedAt?.toUtc().toIso8601String(),
+            'createdAt': row.createdAt.toUtc().toIso8601String(),
+            'updatedAt': row.updatedAt.toUtc().toIso8601String(),
+          },
+      ],
+      'bookmarks': [
+        for (final row in bookmarkRows)
+          {
+            'id': row.id,
+            'url': row.url,
+            'title': row.title,
+            'note': row.note,
+            'tags': row.tags,
+            'archivedAt': row.archivedAt?.toUtc().toIso8601String(),
+            'createdAt': row.createdAt.toUtc().toIso8601String(),
+            'updatedAt': row.updatedAt.toUtc().toIso8601String(),
+          },
+      ],
     };
   }
 
@@ -851,6 +1147,8 @@ class AppDatabase extends _$AppDatabase {
     final methodList = (json['paymentMethods'] as List?) ?? const [];
     final expenseList = (json['expenses'] as List?) ?? const [];
     final templateList = (json['templates'] as List?) ?? const [];
+    final noteList = (json['notes'] as List?) ?? const [];
+    final bookmarkList = (json['bookmarks'] as List?) ?? const [];
     final settingList = (json['settings'] as List?) ?? const [];
     var importedTemplates = 0;
 
@@ -945,6 +1243,42 @@ class AppDatabase extends _$AppDatabase {
         );
       }
 
+      for (final raw in noteList) {
+        final map = Map<String, dynamic>.from(raw as Map);
+        final createdAt = _parseDate(map['createdAt']) ?? DateTime.now();
+        await into(notes).insert(
+          NotesCompanion.insert(
+            id: map['id'] as String,
+            title: map['title'] as String,
+            body: Value(map['body'] as String? ?? ''),
+            tags: Value(map['tags'] as String? ?? ''),
+            pinned: Value(map['pinned'] as bool? ?? false),
+            archivedAt: Value(_parseDate(map['archivedAt'])),
+            createdAt: createdAt,
+            updatedAt: _parseDate(map['updatedAt']) ?? createdAt,
+          ),
+          mode: InsertMode.insertOrIgnore,
+        );
+      }
+
+      for (final raw in bookmarkList) {
+        final map = Map<String, dynamic>.from(raw as Map);
+        final createdAt = _parseDate(map['createdAt']) ?? DateTime.now();
+        await into(bookmarks).insert(
+          BookmarksCompanion.insert(
+            id: map['id'] as String,
+            url: map['url'] as String,
+            title: map['title'] as String? ?? '',
+            note: Value(map['note'] as String?),
+            tags: Value(map['tags'] as String? ?? ''),
+            archivedAt: Value(_parseDate(map['archivedAt'])),
+            createdAt: createdAt,
+            updatedAt: _parseDate(map['updatedAt']) ?? createdAt,
+          ),
+          mode: InsertMode.insertOrIgnore,
+        );
+      }
+
       for (final raw in settingList) {
         final map = Map<String, dynamic>.from(raw as Map);
         await into(settingsEntries).insert(
@@ -962,6 +1296,8 @@ class AppDatabase extends _$AppDatabase {
       paymentMethods: methodList.length,
       expenses: expenseList.length,
       templates: importedTemplates,
+      notes: noteList.length,
+      bookmarks: bookmarkList.length,
     );
   }
 
@@ -1055,6 +1391,15 @@ class AppDatabase extends _$AppDatabase {
 DateTime? _parseDate(Object? value) {
   if (value is! String) return null;
   return DateTime.tryParse(value)?.toLocal();
+}
+
+String _likePattern(String query) {
+  final escaped = query
+      .trim()
+      .replaceAll(r'\', r'\\')
+      .replaceAll('%', r'\%')
+      .replaceAll('_', r'\_');
+  return '%$escaped%';
 }
 
 QueryExecutor _openConnection() => driftDatabase(name: 'xzifra');
