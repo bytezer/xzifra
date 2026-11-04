@@ -7,6 +7,7 @@ import '../../core/tags.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/tag_chips.dart';
 import '../../data/database.dart';
+import '../../data/export_service.dart';
 import '../../providers.dart';
 import 'bookmark_launcher.dart';
 
@@ -43,11 +44,22 @@ class _BookmarksTabState extends ConsumerState<BookmarksTab> {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-            child: TagFilterBar(
-              tags: tags,
-              selected: _tag,
-              onSelected: (value) => setState(() => _tag = value),
+            padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TagFilterBar(
+                    tags: tags,
+                    selected: _tag,
+                    onSelected: (value) => setState(() => _tag = value),
+                  ),
+                ),
+                IconButton(
+                  onPressed: all.isEmpty ? null : _exportAll,
+                  tooltip: l10n.bookmarksExportAll,
+                  icon: const Icon(Icons.folder_zip_outlined),
+                ),
+              ],
             ),
           ),
           Expanded(
@@ -110,6 +122,23 @@ class _BookmarksTabState extends ConsumerState<BookmarksTab> {
         ],
       ),
     );
+  }
+
+  Future<void> _exportAll() async {
+    final bookmarks =
+        ref.read(allBookmarksProvider).asData?.value ?? const <Bookmark>[];
+    if (bookmarks.isEmpty) return;
+    final subject = context.l10n.bookmarksExportAll;
+    try {
+      final service = ExportService(ref.read(databaseProvider));
+      final file = await service.createBookmarksZip(bookmarks);
+      await service.shareFile(file, subject: subject);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.bookmarksExportAllError)),
+      );
+    }
   }
 
   Future<void> _handleAction(Bookmark bookmark, _BookmarkAction action) async {
@@ -229,7 +258,7 @@ class _BookmarkTile extends StatelessWidget {
                 ),
               ),
               PopupMenuButton<_BookmarkAction>(
-                tooltip: MaterialLocalizations.of(context).showMenuTooltip,
+                tooltip: context.l10n.bookmarksActions,
                 onSelected: onAction,
                 itemBuilder: (context) => [
                   PopupMenuItem(

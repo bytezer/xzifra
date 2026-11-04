@@ -1,33 +1,136 @@
 # Xzifra
 
-A simple, local-first expense tracker for Android. Record what you spend, see
-where it goes, and keep everything on your device — no accounts, no cloud, no
-budgets.
+A local-first personal records app for Android. Track expenses, capture notes and
+bookmarks, set reminders and keep recurring payments under control — all on your
+device, with no accounts, no cloud and no analytics.
 
 ## Features
 
-- **Quick entry** — amount first with a large keypad, then category and payment
-  method. Two taps to record an expense.
-- **Your own categories** — create, rename, recolor, reorder, archive. Categories
-  with expenses are archived instead of deleted, so history never breaks.
-- **Payment methods** — build your own list with a name and emoji (cash, Yape,
-  Plin, cards, transfers…), then rename, reorder or archive them like categories.
-- **PEN and USD** — totals are always kept separate per currency. No exchange
-  rates, no hidden conversions.
-- **Reports** — spending by category, last 12 months, and by payment method, with
-  a month selector.
-- **Local-first** — everything lives in a SQLite database on the device. The app
-  works offline and has no backend.
-- **Backup** — export a full JSON backup or a CSV for spreadsheets, and import a
-  JSON backup to restore or merge.
-- **Themes** — Indigo (light/dark) and Cyber Red (black surfaces with neon red
-  accents, dark only).
-- **English and Spanish** — the UI follows the device language by default and
-  can be switched in **Settings → Language**.
-- **About** — real version and build, commit and branch, repo links, diagnostics
-  and open-source licenses.
-- **Home-screen widget** — current month total and a one-tap `+` button to add
-  an expense (Android).
+- **Records hub** — four tabs under **Records**: expenses, notes, bookmarks and
+  reminders.
+- **Quick entry** — record an expense with a large keypad, category and payment
+  method. Templates, duplicate and repeat-last speed up repeat purchases.
+- **Notes** — title, plain text or Markdown source, tags, pin, archive and
+  delete. Export one note as Markdown or every note as a ZIP for Obsidian.
+- **Bookmarks** — save URLs with a title, note and tags. Links open in the
+  external browser; validation only accepts `http` and `https`. Export all
+  bookmarks as Markdown in a ZIP for Obsidian.
+- **Reminders** — title, note, due date/time and tags. Sections for overdue,
+  today, upcoming and done. Done/undone, edit and delete.
+- **Recurring expenses** — rent, subscriptions and other regular payments.
+  Register or skip occurrences manually; Xzifra never creates expenses in the
+  background.
+- **Attachments** — add camera/gallery images or PDF/image documents to saved
+  expenses, notes and reminders. Files stay in app-private storage.
+- **Global search** — search expenses, notes and bookmarks from Home or the
+  Records app bar.
+- **Your own categories and payment methods** — create, rename, recolor,
+  reorder, archive. Categories with history are archived instead of deleted.
+- **PEN and USD** — totals stay separate per currency. No exchange rates.
+- **Reports** — spending by category, last 12 months and payment method.
+- **Local-first** — SQLite on the device. No backend and no network access.
+- **Backups** — JSON for data, CSV for spreadsheets, and a full ZIP backup that
+  also includes attachments.
+- **Themes** — Indigo (light/dark) and Cyber Red (black surfaces, neon red,
+  dark only).
+- **English and Spanish** — follows the device language or can be switched in
+  **Settings → Language**.
+- **Launcher shortcuts** — new expense, reports, new note and new reminder.
+- **Home-screen widget** — current month total, next upcoming item and a
+  one-tap `+` button.
+- **About** — version, build, commit and branch, diagnostics and licenses.
+
+## Records hub
+
+The bottom navigation has four destinations: **Home**, **Records**, **Reports**
+and **Settings**. Records contains:
+
+| Tab | What it stores |
+| --- | --- |
+| Expenses | Amount, currency, date, category, payment method and note |
+| Notes | Title, Markdown/plain body, tags, pinned/archive state |
+| Bookmarks | URL, title, note and tags |
+| Reminders | Title, note, due date/time and tags |
+
+Use the floating **+** button for quick capture and choose **Expense**, **Note**,
+**Bookmark** or **Reminder**.
+
+Global search covers expenses, notes and bookmarks. Archived notes and bookmarks
+are intentionally excluded from global search.
+
+## Recurring expenses
+
+A recurring rule stores a name, amount, currency, category, optional payment
+method, frequency (daily, weekly, monthly or yearly), interval, next date,
+optional end date and note.
+
+When `nextDate` is today or earlier the rule is **due**. From the Recurring page
+or the Home card you can:
+
+- **Register** — create one expense dated at `nextDate`, linked to the rule, and
+  advance `nextDate` by one occurrence.
+- **Skip** — advance `nextDate` without creating an expense.
+
+If several periods are overdue, the rule stays due after one registration so you
+can catch up one period at a time. Xzifra **does not auto-create expenses**.
+Month-end dates clamp correctly (Jan 31 + 1 month → Feb 28/29; Feb 29 + 1 year →
+Feb 28).
+
+## Reminders and notifications
+
+Reminders are grouped into Overdue, Today, Upcoming and Done. Saving a reminder
+schedules a local notification at its due time.
+
+- Notifications use **inexact** scheduling (`inexactAllowWhileIdle`), so Android
+  may deliver them a little late or batch them. This avoids requesting exact-alarm
+  permissions.
+- Android 13+ asks for notification permission when you save your first reminder.
+  If you deny it, the reminder is still saved but will not notify.
+- Pending reminders are rescheduled when the app starts. Completing or deleting a
+  reminder cancels its notification.
+- Tapping a notification opens that reminder in the editor.
+- Recurring expenses do not send notifications; they appear in the app and on
+  Home.
+
+## Attachments
+
+Attachments are available on saved expenses, notes and reminders (edit mode).
+Use the paperclip section to add:
+
+- a photo from the camera or gallery (downscaled/compressed by `image_picker`), or
+- a PDF/image through the system file picker.
+
+Files live under the app documents directory in `attachments/`; the database only
+stores a relative path. Individual attachments are limited to 25 MB. Images open
+in an in-app full-screen viewer, other files open through the system viewer.
+Deleting an attachment, or its expense/note/reminder, removes both the database
+row and the file. Missing files are handled gracefully.
+
+Xzifra requests no broad storage permission and no `INTERNET` permission.
+
+## Home-screen widget
+
+Add **Xzifra** from the Android widget picker. It shows the current month total
+in the default currency, the next upcoming recurring payment/reminder when one
+exists, and a `+` button that opens the new-expense form. Tapping the rest of the
+widget opens the app.
+
+The widget refreshes on app start/resume and when expenses, recurring rules or
+reminders change. It does not run background refreshes, so a month rollover while
+the app stays closed updates on the next open/resume. If nothing is upcoming the
+footer is hidden.
+
+## Launcher shortcuts
+
+Long-press the Xzifra launcher icon for:
+
+- **New expense** → `/add`
+- **Reports** → `/reports`
+- **New note** → `/notes/new`
+- **New reminder** → `/reminders/new`
+
+Labels follow the app language. Shortcut actions work from cold start and while
+the app is running.
 
 ## Themes
 
@@ -37,18 +140,28 @@ budgets.
 | Cyber Red | Black surfaces with neon red accents | Dark only |
 
 Pick one in **Settings → Appearance**. The choice is stored in the local
-database, so it survives restarts and travels with JSON backups.
+database and travels with JSON backups.
 
-## Home-screen widget
+## Data and backups
 
-Add **Xzifra** from the Android widget picker. It shows the current month total
-in the default currency (formatted with the app language) and a `+` button that
-opens the new-expense form directly. Tapping the rest of the widget opens the
-app.
+The database is stored in the app's private storage. Uninstalling the app deletes
+it, so keep a backup somewhere safe.
 
-The widget refreshes when the app starts or resumes and whenever expenses change.
-It does not run background refreshes, so a month rollover while the app stays
-closed updates on the next open/resume.
+**Settings → Backup** offers:
+
+- **Export JSON backup** / **Import JSON backup** — records and settings only.
+  Attachment metadata is intentionally excluded so JSON imports never point at
+  missing files.
+- **Export full backup (ZIP)** — `xzifra-backup.json` plus every attachment under
+  `attachments/`.
+- **Export CSV** — expenses for spreadsheets.
+
+Full ZIP import extracts to a temporary directory, merges the JSON data, then
+restores only attachments whose owner and file are present. Existing records win
+on conflict. Duplicate or invalid attachments are skipped.
+
+JSON, full ZIP and Markdown exports are shared through the Android share sheet
+(Drive, email, etc.).
 
 ## Stack
 
@@ -59,6 +172,7 @@ closed updates on the next open/resume.
 | Database | Drift (SQLite) with reactive queries |
 | Navigation | go_router |
 | Charts | fl_chart |
+| Notifications | flutter_local_notifications + timezone |
 | Formatting | intl (`en_US`, PEN/USD) |
 
 ## Requirements
@@ -110,7 +224,7 @@ selected language; CSV exports keep dot decimals for spreadsheet compatibility.
 
 Output: `app/build/app/outputs/flutter-apk/app-release.apk`
 
-The default build is a universal APK (~60 MB) that works on any device. For a
+The default build is a universal APK (~73 MB) that works on any device. For a
 smaller, ABI-specific APK (arm64 only, ~25 MB):
 
 ```bash
@@ -136,12 +250,13 @@ The build script injects the current commit, branch and UTC build date via
 
 ```
 app/lib/
-  core/        theme presets, theme settings and shared widgets
-  data/        Drift schema, queries, seed, export/import
-  domain/      money, periods and report math (pure Dart, tested)
-  features/    dashboard, expenses, reports, settings (incl. About)
+  core/        theme, settings, notifications, widget text, shared widgets
+  data/        Drift schema, queries, seed, attachments, export/import
+  domain/      money, periods, recurrence and report math (pure Dart, tested)
+  features/    dashboard, records, expenses, notes, bookmarks, reminders,
+               recurring, settings (incl. About)
   routing/     go_router configuration and app shell
-app/test/      unit and database tests
+app/test/      unit, database, export and widget tests
 app/assets/    launcher icon sources
 scripts/       build-apk.sh, generate_icon.py
 docs/          signing notes
@@ -161,19 +276,10 @@ python3 scripts/generate_icon.py
 cd app && dart run flutter_launcher_icons
 ```
 
-## Data and backups
-
-The database is stored in the app's private storage. Uninstalling the app deletes
-it, so keep a JSON backup somewhere safe:
-
-**Settings → Backup → Export JSON backup** shares the file through the Android
-share sheet (Drive, email, etc.). **Import JSON backup** merges a backup back in;
-existing records win on conflict.
-
 ## Out of scope
 
-Budgets, income tracking, account balances, bank sync, recurring expenses, receipt
-photos, multi-user support and cloud sync.
+Budgets, income tracking, account balances, bank sync, multi-user support and
+cloud sync.
 
 ## License
 

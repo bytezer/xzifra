@@ -234,7 +234,7 @@ class _RecurringTile extends StatelessWidget {
                   ),
                 ),
                 PopupMenuButton<_RecurringAction>(
-                  tooltip: MaterialLocalizations.of(context).showMenuTooltip,
+                  tooltip: context.l10n.recurringActions,
                   onSelected: onAction,
                   itemBuilder: (context) => [
                     PopupMenuItem(

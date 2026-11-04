@@ -75,6 +75,16 @@ class AppShortcuts {
           localizedTitle: l10n.shortcutReports,
           icon: 'ic_shortcut_reports',
         ),
+        ShortcutItem(
+          type: AppShortcutAction.newNote.type,
+          localizedTitle: l10n.shortcutNewNote,
+          icon: 'ic_shortcut_note',
+        ),
+        ShortcutItem(
+          type: AppShortcutAction.newReminder.type,
+          localizedTitle: l10n.shortcutNewReminder,
+          icon: 'ic_shortcut_reminder',
+        ),
       ]);
     } catch (_) {
       // Keep whatever shortcut set is already registered.

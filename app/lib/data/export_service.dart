@@ -88,6 +88,51 @@ class ExportService {
     return file;
   }
 
+  /// Exports every bookmark as Markdown files inside a ZIP for Obsidian.
+  Future<File> createBookmarksZip(List<Bookmark> bookmarks) async {
+    final archive = Archive();
+    final names = <String>{};
+    for (final bookmark in bookmarks) {
+      var name = _slug(bookmark.title);
+      if (name.isEmpty) name = 'bookmark';
+      var fileName = '$name.md';
+      var suffix = 2;
+      while (!names.add(fileName)) {
+        fileName = '$name-${suffix++}.md';
+      }
+      archive.addFile(
+        ArchiveFile.string(
+          'Xzifra Bookmarks/$fileName',
+          bookmarkMarkdown(bookmark),
+        ),
+      );
+    }
+    final file = await _tempFile('xzifra-bookmarks', 'zip');
+    await file.writeAsBytes(ZipEncoder().encode(archive));
+    return file;
+  }
+
+  String bookmarkMarkdown(Bookmark bookmark) {
+    final buffer = StringBuffer('---\n');
+    buffer.writeln('title: ${jsonEncode(bookmark.title)}');
+    buffer.writeln('url: ${jsonEncode(bookmark.url)}');
+    final tags = parseTags(bookmark.tags);
+    buffer.writeln('tags: [${tags.map(jsonEncode).join(', ')}]');
+    buffer.writeln('created: ${bookmark.createdAt.toUtc().toIso8601String()}');
+    buffer.writeln('updated: ${bookmark.updatedAt.toUtc().toIso8601String()}');
+    buffer.writeln('---');
+    buffer.writeln();
+    buffer.writeln('# ${bookmark.title}');
+    buffer.writeln();
+    buffer.writeln(bookmark.url);
+    final note = bookmark.note?.trim() ?? '';
+    if (note.isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln(note);
+    }
+    return buffer.toString();
+  }
+
   /// Creates a ZIP with the JSON backup (including attachment metadata) and
   /// every attachment file under `attachments/`.
   Future<File> createFullBackup() async {

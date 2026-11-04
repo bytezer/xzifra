@@ -5,7 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:home_widget/home_widget.dart';
 
+import '../data/database.dart';
 import '../domain/periods.dart';
+import '../domain/recurrence.dart';
 import '../l10n/app_localizations.dart';
 import '../providers.dart';
 import '../routing/router.dart';
@@ -25,6 +27,7 @@ class WidgetDataSync extends ConsumerStatefulWidget {
   static const String monthKey = 'xzifra_widget_month';
   static const String amountKey = 'xzifra_widget_amount';
   static const String emptyMessageKey = 'xzifra_widget_empty';
+  static const String nextUpKey = 'xzifra_widget_next_up';
 
   static const String addUri = 'xzifra://add';
   static const String openUri = 'xzifra://open';
@@ -112,6 +115,7 @@ class WidgetDataSync extends ConsumerStatefulWidget {
       await HomeWidget.saveWidgetData<String>(monthKey, text.monthLabel);
       await HomeWidget.saveWidgetData<String>(amountKey, text.amountLabel);
       await HomeWidget.saveWidgetData<String>(emptyMessageKey, emptyMessage);
+      await HomeWidget.saveWidgetData<String>(nextUpKey, text.nextUpLabel);
       await HomeWidget.updateWidget(androidName: androidName);
     } on MissingPluginException {
       // Widgets are Android-only.
@@ -172,6 +176,9 @@ class _WidgetDataSyncState extends ConsumerState<WidgetDataSync>
         )),
       );
     }
+    // Keep the footer in sync with recurring rules and reminders.
+    ref.watch(activeRecurringExpensesProvider);
+    ref.watch(remindersProvider);
     _scheduleSync();
     return widget.child;
   }
@@ -218,10 +225,13 @@ class _WidgetDataSyncState extends ConsumerState<WidgetDataSync>
       currency: currency,
       locale: locale,
       emptyMessage: l10n.widgetEmptyMessage,
+      upcoming: _nextUpcoming(),
+      nextUpPrefix: l10n.widgetNextUpPrefix,
     );
     final signature = [
       text.monthLabel,
       text.amountLabel,
+      text.nextUpLabel,
       l10n.widgetEmptyMessage,
       locale,
     ].join('|');
@@ -229,5 +239,47 @@ class _WidgetDataSyncState extends ConsumerState<WidgetDataSync>
     _lastSignature = signature;
 
     await WidgetDataSync.push(text, emptyMessage: l10n.widgetEmptyMessage);
+  }
+
+  WidgetUpcoming? _nextUpcoming() {
+    final rules = ref.read(activeRecurringExpensesProvider).asData?.value;
+    final reminders = ref.read(remindersProvider).asData?.value;
+    if (rules == null || reminders == null) return null;
+
+    RecurringExpense? nextRule;
+    DateTime? nextRuleDate;
+    for (final rule in rules) {
+      final date = parseDateKey(rule.nextDate);
+      if (date == null) continue;
+      final end = parseDateKey(rule.endDate);
+      if (end != null && date.isAfter(end)) continue;
+      if (nextRuleDate == null || date.isBefore(nextRuleDate)) {
+        nextRule = rule;
+        nextRuleDate = date;
+      }
+    }
+
+    Reminder? nextReminder;
+    for (final reminder in reminders) {
+      if (reminder.doneAt != null) continue;
+      if (nextReminder == null || reminder.dueAt.isBefore(nextReminder.dueAt)) {
+        nextReminder = reminder;
+      }
+    }
+
+    if (nextRule == null && nextReminder == null) return null;
+    final ruleWins =
+        nextRuleDate != null &&
+        (nextReminder == null || !nextRuleDate.isAfter(nextReminder.dueAt));
+    if (ruleWins) {
+      return WidgetUpcoming(
+        title: nextRule!.name,
+        date: nextRuleDate,
+        amountCents: nextRule.amountCents,
+        currency: nextRule.currency,
+        isRecurring: true,
+      );
+    }
+    return WidgetUpcoming(title: nextReminder!.title, date: nextReminder.dueAt);
   }
 }

@@ -269,7 +269,7 @@ class _NoteTile extends StatelessWidget {
                 ),
               ),
               PopupMenuButton<_NoteAction>(
-                tooltip: MaterialLocalizations.of(context).showMenuTooltip,
+                tooltip: context.l10n.notesActions,
                 onSelected: onAction,
                 itemBuilder: (context) => [
                   PopupMenuItem(

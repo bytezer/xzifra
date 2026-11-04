@@ -561,6 +561,16 @@
   "settingsImportFullBackupSubtitle": "Merge records and restore attachments",
   "settingsFullBackupExportError": "Could not export the full backup.",
 
+  "shortcutNewNote": "New note",
+  "shortcutNewReminder": "New reminder",
+  "widgetNextUpPrefix": "Next",
+  "bookmarksExportAll": "Export bookmarks (ZIP)",
+  "bookmarksExportAllError": "Could not export the bookmarks.",
+  "notesActions": "Note actions",
+  "bookmarksActions": "Bookmark actions",
+  "remindersActions": "Reminder actions",
+  "recurringActions": "Recurring expense actions",
+
   "aboutTitle": "About",
   "aboutTagline": "A local-first expense tracker for Android.",
   "aboutDataPrivacyTitle": "Data & privacy",

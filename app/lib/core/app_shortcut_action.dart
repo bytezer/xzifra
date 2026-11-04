@@ -4,7 +4,9 @@
 /// [route] is the go_router location opened for it.
 enum AppShortcutAction {
   newExpense('new_expense', '/add'),
-  reports('reports', '/reports');
+  reports('reports', '/reports'),
+  newNote('new_note', '/notes/new'),
+  newReminder('new_reminder', '/reminders/new');
 
   const AppShortcutAction(this.type, this.route);
 

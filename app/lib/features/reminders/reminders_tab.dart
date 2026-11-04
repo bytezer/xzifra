@@ -306,7 +306,7 @@ class _ReminderTile extends StatelessWidget {
                 ),
               ),
               PopupMenuButton<_ReminderAction>(
-                tooltip: MaterialLocalizations.of(context).showMenuTooltip,
+                tooltip: context.l10n.remindersActions,
                 onSelected: onAction,
                 itemBuilder: (context) => [
                   PopupMenuItem(

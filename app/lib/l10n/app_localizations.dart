@@ -2163,6 +2163,60 @@ abstract class AppLocalizations {
   /// **'Could not export the full backup.'**
   String get settingsFullBackupExportError;
 
+  /// No description provided for @shortcutNewNote.
+  ///
+  /// In en, this message translates to:
+  /// **'New note'**
+  String get shortcutNewNote;
+
+  /// No description provided for @shortcutNewReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'New reminder'**
+  String get shortcutNewReminder;
+
+  /// No description provided for @widgetNextUpPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get widgetNextUpPrefix;
+
+  /// No description provided for @bookmarksExportAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Export bookmarks (ZIP)'**
+  String get bookmarksExportAll;
+
+  /// No description provided for @bookmarksExportAllError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not export the bookmarks.'**
+  String get bookmarksExportAllError;
+
+  /// No description provided for @notesActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Note actions'**
+  String get notesActions;
+
+  /// No description provided for @bookmarksActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookmark actions'**
+  String get bookmarksActions;
+
+  /// No description provided for @remindersActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder actions'**
+  String get remindersActions;
+
+  /// No description provided for @recurringActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring expense actions'**
+  String get recurringActions;
+
   /// No description provided for @aboutTitle.
   ///
   /// In en, this message translates to:

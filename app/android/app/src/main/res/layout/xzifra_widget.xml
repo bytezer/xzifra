@@ -68,6 +68,20 @@
             android:text="@string/xzifra_widget_empty"
             android:textColor="#E0E7FF"
             android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/widget_next_up"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:textColor="#C7D2FE"
+            android:textSize="10sp"
+            android:visibility="gone"
+            tools:text="Next: Rent · Dec 1"
+            tools:visibility="visible" />
     </LinearLayout>
 
     <ImageView

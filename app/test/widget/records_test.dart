@@ -177,6 +177,7 @@ void main() {
     expect(find.text('Flutter'), findsOneWidget);
     expect(find.text('https://flutter.dev'), findsOneWidget);
     expect(find.widgetWithText(FilterChip, 'reading'), findsOneWidget);
+    expect(find.byTooltip('Export bookmarks (ZIP)'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(milliseconds: 20));

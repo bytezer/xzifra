@@ -1174,6 +1174,34 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo exportar la copia completa.';
 
   @override
+  String get shortcutNewNote => 'Nueva nota';
+
+  @override
+  String get shortcutNewReminder => 'Nuevo recordatorio';
+
+  @override
+  String get widgetNextUpPrefix => 'Próximo';
+
+  @override
+  String get bookmarksExportAll => 'Exportar marcadores (ZIP)';
+
+  @override
+  String get bookmarksExportAllError =>
+      'No se pudieron exportar los marcadores.';
+
+  @override
+  String get notesActions => 'Acciones de la nota';
+
+  @override
+  String get bookmarksActions => 'Acciones del marcador';
+
+  @override
+  String get remindersActions => 'Acciones del recordatorio';
+
+  @override
+  String get recurringActions => 'Acciones del gasto recurrente';
+
+  @override
   String get aboutTitle => 'Acerca de';
 
   @override

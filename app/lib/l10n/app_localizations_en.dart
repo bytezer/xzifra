@@ -1169,6 +1169,33 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not export the full backup.';
 
   @override
+  String get shortcutNewNote => 'New note';
+
+  @override
+  String get shortcutNewReminder => 'New reminder';
+
+  @override
+  String get widgetNextUpPrefix => 'Next';
+
+  @override
+  String get bookmarksExportAll => 'Export bookmarks (ZIP)';
+
+  @override
+  String get bookmarksExportAllError => 'Could not export the bookmarks.';
+
+  @override
+  String get notesActions => 'Note actions';
+
+  @override
+  String get bookmarksActions => 'Bookmark actions';
+
+  @override
+  String get remindersActions => 'Reminder actions';
+
+  @override
+  String get recurringActions => 'Recurring expense actions';
+
+  @override
   String get aboutTitle => 'About';
 
   @override

@@ -26,7 +26,9 @@ class XzifraWidgetProvider : HomeWidgetProvider() {
     val emptyMessage =
         widgetData.getString(KEY_EMPTY_MESSAGE, null)
             ?: context.getString(R.string.xzifra_widget_empty)
+    val nextUp = widgetData.getString(KEY_NEXT_UP, null)
     val hasData = !month.isNullOrBlank() && amount != null
+    val hasNextUp = !nextUp.isNullOrBlank()
 
     appWidgetIds.forEach { widgetId ->
       val views =
@@ -66,12 +68,19 @@ class XzifraWidgetProvider : HomeWidgetProvider() {
                 R.id.widget_empty,
                 if (hasData) View.GONE else View.VISIBLE,
             )
+            setViewVisibility(
+                R.id.widget_next_up,
+                if (hasNextUp) View.VISIBLE else View.GONE,
+            )
 
             if (hasData) {
               setTextViewText(R.id.widget_month, month)
               setTextViewText(R.id.widget_amount, amount)
             } else {
               setTextViewText(R.id.widget_empty, emptyMessage)
+            }
+            if (hasNextUp) {
+              setTextViewText(R.id.widget_next_up, nextUp)
             }
           }
 
@@ -83,5 +92,6 @@ class XzifraWidgetProvider : HomeWidgetProvider() {
     const val KEY_MONTH = "xzifra_widget_month"
     const val KEY_AMOUNT = "xzifra_widget_amount"
     const val KEY_EMPTY_MESSAGE = "xzifra_widget_empty"
+    const val KEY_NEXT_UP = "xzifra_widget_next_up"
   }
 }

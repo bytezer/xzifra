@@ -371,6 +371,16 @@
   "settingsImportFullBackupSubtitle": "Combina registros y restaura los adjuntos",
   "settingsFullBackupExportError": "No se pudo exportar la copia completa.",
 
+  "shortcutNewNote": "Nueva nota",
+  "shortcutNewReminder": "Nuevo recordatorio",
+  "widgetNextUpPrefix": "Próximo",
+  "bookmarksExportAll": "Exportar marcadores (ZIP)",
+  "bookmarksExportAllError": "No se pudieron exportar los marcadores.",
+  "notesActions": "Acciones de la nota",
+  "bookmarksActions": "Acciones del marcador",
+  "remindersActions": "Acciones del recordatorio",
+  "recurringActions": "Acciones del gasto recurrente",
+
   "aboutTitle": "Acerca de",
   "aboutTagline": "Un registro de gastos local-first para Android.",
   "aboutDataPrivacyTitle": "Datos y privacidad",
