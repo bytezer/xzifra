@@ -590,6 +590,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not save the template. Please try again.';
 
   @override
+  String get templatesFromExpense => 'From an expense';
+
+  @override
+  String get templatesPickExpense => 'Pick an expense';
+
+  @override
+  String get templatesFromExpenseNote =>
+      'This only creates a template. Your expense won\'t change.';
+
+  @override
+  String get templatesNoExpenses => 'No expenses yet.';
+
+  @override
   String get templateArchived => 'Archived';
 
   @override

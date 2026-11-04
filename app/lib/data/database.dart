@@ -220,6 +220,25 @@ class AppDatabase extends _$AppDatabase {
     return _mapRows(rows);
   }
 
+  /// Most recent expenses across both currencies, newest first.
+  Future<List<ExpenseView>> recentExpenses({int limit = 30}) async {
+    final query =
+        select(expenses).join([
+            innerJoin(categories, categories.id.equalsExp(expenses.categoryId)),
+            leftOuterJoin(
+              paymentMethods,
+              paymentMethods.id.equalsExp(expenses.paymentMethodId),
+            ),
+          ])
+          ..orderBy([
+            OrderingTerm.desc(expenses.date),
+            OrderingTerm.desc(expenses.createdAt),
+          ])
+          ..limit(limit);
+    final rows = await query.get();
+    return _mapRows(rows);
+  }
+
   Future<ExpenseView?> getExpenseView(String id) async {
     final query = select(expenses).join([
       innerJoin(categories, categories.id.equalsExp(expenses.categoryId)),

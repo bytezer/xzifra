@@ -1130,6 +1130,30 @@ abstract class AppLocalizations {
   /// **'Could not save the template. Please try again.'**
   String get templatesSaveError;
 
+  /// No description provided for @templatesFromExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'From an expense'**
+  String get templatesFromExpense;
+
+  /// No description provided for @templatesPickExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick an expense'**
+  String get templatesPickExpense;
+
+  /// No description provided for @templatesFromExpenseNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This only creates a template. Your expense won\'t change.'**
+  String get templatesFromExpenseNote;
+
+  /// No description provided for @templatesNoExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'No expenses yet.'**
+  String get templatesNoExpenses;
+
   /// No description provided for @templateArchived.
   ///
   /// In en, this message translates to:

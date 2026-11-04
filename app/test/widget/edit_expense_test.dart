@@ -66,6 +66,9 @@ void main() {
     expect(find.textContaining('S/ 12.50'), findsWidgets);
     expect(find.text('Save changes'), findsOneWidget);
     expect(find.text('Save & add another'), findsNothing);
+    // Saving as a template is no longer an edit-form action.
+    expect(find.byTooltip('Save as template'), findsNothing);
+    expect(find.byIcon(Icons.bookmark_add_outlined), findsNothing);
 
     await _scrollTo(tester, find.widgetWithText(ChoiceChip, 'Food'));
     expect(

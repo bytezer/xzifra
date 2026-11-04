@@ -5,7 +5,9 @@ import '../../core/l10n.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../data/database.dart';
 import '../../domain/money.dart';
+import '../../domain/periods.dart';
 import '../../providers.dart';
+import 'expense_template_action.dart';
 import 'template_editor.dart';
 
 class TemplatesPage extends ConsumerWidget {
@@ -28,7 +30,16 @@ class TemplatesPage extends ConsumerWidget {
     final categoriesById = {for (final item in categories) item.id: item};
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.templatesTitle)),
+      appBar: AppBar(
+        title: Text(l10n.templatesTitle),
+        actions: [
+          IconButton(
+            tooltip: l10n.templatesFromExpense,
+            icon: const Icon(Icons.receipt_long_outlined),
+            onPressed: () => _pickExpense(context, ref),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () =>
             _openEditor(context, ref, categories: categories, methods: methods),
@@ -101,6 +112,83 @@ class TemplatesPage extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _pickExpense(BuildContext context, WidgetRef ref) async {
+    final l10n = context.l10n;
+    final expenses = await ref.read(databaseProvider).recentExpenses();
+    if (!context.mounted) return;
+
+    if (expenses.isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.templatesNoExpenses)));
+      return;
+    }
+
+    final selected = await showModalBottomSheet<ExpenseView>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (context) {
+        final locale = localeNameOf(context);
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    l10n.templatesPickExpense,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+              ),
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: [
+                    for (final item in expenses)
+                      ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: Color(item.category.color)
+                              .withValues(alpha: 0.15),
+                          child: Text(item.category.icon),
+                        ),
+                        title: Text(item.category.name),
+                        subtitle: Text(
+                          [
+                            Periods.dayLabel(
+                              item.expense.date,
+                              locale: locale,
+                              today: l10n.today,
+                              yesterday: l10n.yesterday,
+                            ),
+                            if (item.expense.note?.trim().isNotEmpty ?? false)
+                              item.expense.note!.trim(),
+                          ].join(' · '),
+                        ),
+                        trailing: Text(
+                          Money.format(
+                            item.expense.amountCents,
+                            item.expense.currency,
+                            locale: locale,
+                          ),
+                        ),
+                        onTap: () => Navigator.of(context).pop(item),
+                      ),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    if (selected == null || !context.mounted) return;
+    await saveExpenseAsTemplate(context, ref, selected);
   }
 
   Future<void> _move(

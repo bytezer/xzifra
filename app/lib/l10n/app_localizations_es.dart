@@ -594,6 +594,19 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo guardar la plantilla. Inténtalo de nuevo.';
 
   @override
+  String get templatesFromExpense => 'Desde un gasto';
+
+  @override
+  String get templatesPickExpense => 'Elige un gasto';
+
+  @override
+  String get templatesFromExpenseNote =>
+      'Esto solo crea una plantilla. Tu gasto no cambia.';
+
+  @override
+  String get templatesNoExpenses => 'Aún no hay gastos.';
+
+  @override
   String get templateArchived => 'Archivada';
 
   @override

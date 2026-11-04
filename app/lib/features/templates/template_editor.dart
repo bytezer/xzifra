@@ -27,9 +27,10 @@ class TemplateEditorResult {
 /// Opens the add/edit template dialog.
 ///
 /// [template] is set when editing an existing template. [initial] pre-fills a
-/// new template (used by "save as template" from the expense form). Only active
-/// categories and payment methods are offered, except the ones already chosen
-/// by the template being edited.
+/// new template (used when saving an expense as a template). [fromExpense]
+/// adds a note clarifying that the source expense will not be modified. Only
+/// active categories and payment methods are offered, except the ones already
+/// chosen by the template being edited.
 Future<TemplateEditorResult?> showTemplateEditor(
   BuildContext context, {
   required List<Category> categories,
@@ -37,6 +38,7 @@ Future<TemplateEditorResult?> showTemplateEditor(
   Template? template,
   TemplateEditorResult? initial,
   String defaultCurrency = 'PEN',
+  bool fromExpense = false,
 }) async {
   final l10n = context.l10n;
   final seed = template == null
@@ -73,6 +75,7 @@ Future<TemplateEditorResult?> showTemplateEditor(
       defaultCurrency: defaultCurrency,
       categories: categoryOptions,
       methods: methodOptions,
+      fromExpense: fromExpense,
     ),
   );
 }
@@ -84,6 +87,7 @@ class _TemplateEditorDialog extends StatefulWidget {
     required this.defaultCurrency,
     required this.categories,
     required this.methods,
+    this.fromExpense = false,
   });
 
   final bool isEditing;
@@ -91,6 +95,7 @@ class _TemplateEditorDialog extends StatefulWidget {
   final String defaultCurrency;
   final List<Category> categories;
   final List<PaymentMethod> methods;
+  final bool fromExpense;
 
   @override
   State<_TemplateEditorDialog> createState() => _TemplateEditorDialogState();
@@ -149,6 +154,36 @@ class _TemplateEditorDialogState extends State<_TemplateEditorDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (widget.fromExpense) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.secondaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      size: 18,
+                      color: theme.colorScheme.onSecondaryContainer,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        l10n.templatesFromExpenseNote,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSecondaryContainer,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
             TextField(
               controller: _nameController,
               autofocus: true,

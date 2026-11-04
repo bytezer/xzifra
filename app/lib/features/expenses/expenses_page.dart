@@ -11,6 +11,7 @@ import '../../domain/money.dart';
 import '../../domain/periods.dart';
 import '../../domain/reports.dart';
 import '../../providers.dart';
+import '../templates/expense_template_action.dart';
 
 class ExpensesPage extends ConsumerStatefulWidget {
   const ExpensesPage({super.key});
@@ -235,6 +236,12 @@ class _ExpensesPageState extends ConsumerState<ExpensesPage> {
               onTap: () => Navigator.of(context).pop(_ExpenseAction.duplicate),
             ),
             ListTile(
+              leading: const Icon(Icons.bookmark_add_outlined),
+              title: Text(context.l10n.templatesSaveAsTemplate),
+              onTap: () =>
+                  Navigator.of(context).pop(_ExpenseAction.saveAsTemplate),
+            ),
+            ListTile(
               leading: Icon(
                 Icons.delete_outline,
                 color: Theme.of(context).colorScheme.error,
@@ -256,6 +263,8 @@ class _ExpensesPageState extends ConsumerState<ExpensesPage> {
         context.push('/expenses/${item.expense.id}/edit');
       case _ExpenseAction.duplicate:
         context.push('/expenses/${item.expense.id}/duplicate');
+      case _ExpenseAction.saveAsTemplate:
+        await saveExpenseAsTemplate(context, ref, item);
       case _ExpenseAction.delete:
         await _delete(item);
     }
@@ -287,7 +296,7 @@ class _ExpensesPageState extends ConsumerState<ExpensesPage> {
   }
 }
 
-enum _ExpenseAction { edit, duplicate, delete }
+enum _ExpenseAction { edit, duplicate, saveAsTemplate, delete }
 
 class _OptionSheet extends StatelessWidget {
   const _OptionSheet({
