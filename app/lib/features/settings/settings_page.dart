@@ -132,6 +132,17 @@ class SettingsPage extends ConsumerWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
+                    leading: const Icon(Icons.event_repeat),
+                    title: Text(l10n.settingsRecurring),
+                    subtitle: Text(l10n.settingsRecurringSubtitle),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.push('/recurring'),
+                  ),
+                  const Divider(height: 1, indent: 56),
+                  ListTile(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     leading: const Icon(Icons.bookmark_border),
                     title: Text(l10n.settingsTemplates),
                     subtitle: Text(l10n.settingsTemplatesSubtitle),

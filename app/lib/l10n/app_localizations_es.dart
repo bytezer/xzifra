@@ -118,6 +118,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get quickAddReminder => 'Recordatorio';
 
   @override
+  String get quickAddRecurring => 'Pago recurrente';
+
+  @override
   String get tagsLabel => 'Etiquetas';
 
   @override
@@ -596,6 +599,13 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settingsTemplatesSubtitle =>
       'Guarda gastos frecuentes para registrarlos rápido';
+
+  @override
+  String get settingsRecurring => 'Pagos recurrentes';
+
+  @override
+  String get settingsRecurringSubtitle =>
+      'Suscripciones y cuentas que se repiten';
 
   @override
   String get settingsBackup => 'Copia de seguridad';
@@ -1101,6 +1111,9 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get dashboardNoUpcomingPaymentsMessage =>
       'Agrega un gasto recurrente para verlo aquí.';
+
+  @override
+  String get dashboardAddRecurring => 'Agregar pago recurrente';
 
   @override
   String get dashboardUpcomingReminders => 'Próximos recordatorios';

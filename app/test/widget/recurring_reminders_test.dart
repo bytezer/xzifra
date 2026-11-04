@@ -53,7 +53,7 @@ void main() {
     await _settle(tester);
     await tester.tap(find.text('Expenses'));
     await _settle(tester);
-    await tester.tap(find.byTooltip('Recurring'));
+    await tester.tap(find.widgetWithText(TextButton, 'Recurring'));
     await _settle(tester);
 
     expect(find.text('No recurring expenses yet'), findsOneWidget);

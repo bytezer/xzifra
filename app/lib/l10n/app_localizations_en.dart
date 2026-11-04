@@ -118,6 +118,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quickAddReminder => 'Reminder';
 
   @override
+  String get quickAddRecurring => 'Recurring payment';
+
+  @override
   String get tagsLabel => 'Tags';
 
   @override
@@ -592,6 +595,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsTemplatesSubtitle =>
       'Save frequent expenses for quick entry';
+
+  @override
+  String get settingsRecurring => 'Recurring payments';
+
+  @override
+  String get settingsRecurringSubtitle => 'Subscriptions and repeating bills';
 
   @override
   String get settingsBackup => 'Backup';
@@ -1097,6 +1106,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dashboardNoUpcomingPaymentsMessage =>
       'Add a recurring expense to see it here.';
+
+  @override
+  String get dashboardAddRecurring => 'Add recurring payment';
 
   @override
   String get dashboardUpcomingReminders => 'Upcoming reminders';

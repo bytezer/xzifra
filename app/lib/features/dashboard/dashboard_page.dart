@@ -108,6 +108,11 @@ class DashboardPage extends ConsumerWidget {
                       icon: Icons.event_repeat,
                       title: context.l10n.dashboardNoUpcomingPaymentsTitle,
                       message: context.l10n.dashboardNoUpcomingPaymentsMessage,
+                      action: FilledButton.icon(
+                        onPressed: () => context.push('/recurring/new'),
+                        icon: const Icon(Icons.add),
+                        label: Text(context.l10n.dashboardAddRecurring),
+                      ),
                     )
                   : Column(
                       children: [

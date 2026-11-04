@@ -77,10 +77,10 @@ class _ExpensesTabState extends ConsumerState<ExpensesTab> {
                 Row(
                   children: [
                     const Expanded(child: MonthSelector(alignStart: true)),
-                    IconButton(
+                    TextButton.icon(
                       onPressed: () => context.push('/recurring'),
-                      tooltip: context.l10n.recurringTitle,
-                      icon: const Icon(Icons.event_repeat),
+                      icon: const Icon(Icons.event_repeat, size: 18),
+                      label: Text(context.l10n.recurringTitle),
                     ),
                   ],
                 ),

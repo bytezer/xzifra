@@ -314,6 +314,12 @@ abstract class AppLocalizations {
   /// **'Reminder'**
   String get quickAddReminder;
 
+  /// No description provided for @quickAddRecurring.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring payment'**
+  String get quickAddRecurring;
+
   /// No description provided for @tagsLabel.
   ///
   /// In en, this message translates to:
@@ -1220,6 +1226,18 @@ abstract class AppLocalizations {
   /// **'Save frequent expenses for quick entry'**
   String get settingsTemplatesSubtitle;
 
+  /// No description provided for @settingsRecurring.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring payments'**
+  String get settingsRecurring;
+
+  /// No description provided for @settingsRecurringSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscriptions and repeating bills'**
+  String get settingsRecurringSubtitle;
+
   /// No description provided for @settingsBackup.
   ///
   /// In en, this message translates to:
@@ -2036,6 +2054,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add a recurring expense to see it here.'**
   String get dashboardNoUpcomingPaymentsMessage;
+
+  /// No description provided for @dashboardAddRecurring.
+  ///
+  /// In en, this message translates to:
+  /// **'Add recurring payment'**
+  String get dashboardAddRecurring;
 
   /// No description provided for @dashboardUpcomingReminders.
   ///
